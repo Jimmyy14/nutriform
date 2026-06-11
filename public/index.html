@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriForm</title>
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #edecea;
+  --border: #dedad3;
+  --border2: #c8c3ba;
+  --text: #18170f;
+  --text2: #6a6358;
+  --text3: #a09890;
+  --green: #2a6041;
+  --green-bg: #d4eddc;
+  --green-light: #e8f5eb;
+  --amber: #7a5a18;
+  --amber-bg: #fef0c0;
+  --red: #8f2a22;
+  --red-bg: #fde4e2;
+  --blue: #1a4f7a;
+  --blue-bg: #dbeafe;
+  --radius: 10px;
+  --rsm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.5; }
+
+/* LANG SCREEN */
+#lang-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; flex-direction: column; gap: 2rem;
+}
+.lang-logo { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.lang-logo-dot { width: 12px; height: 12px; background: var(--green); border-radius: 50%; }
+.lang-tagline { font-size: 14px; color: var(--text3); text-align: center; }
+.lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 320px; }
+.lang-btn {
+  padding: 18px 20px; border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer; text-align: left;
+  transition: all 0.15s; box-shadow: var(--shadow);
+}
+.lang-btn:hover { border-color: var(--green); background: var(--green-light); }
+.lang-btn .flag { font-size: 26px; display: block; margin-bottom: 4px; }
+.lang-btn .lang-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.lang-btn .lang-native { font-size: 12px; color: var(--text3); }
+
+/* APP */
+#app { display: none; }
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+  height: 54px; position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow);
+}
+.logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.logo-dot { width: 9px; height: 9px; background: var(--green); border-radius: 50%; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.lang-switch { font-size: 12px; color: var(--text3); cursor: pointer; padding: 4px 8px; border-radius: var(--rsm); border: 1px solid var(--border); background: transparent; }
+.lang-switch:hover { background: var(--surface2); }
+
+.layout {
+  max-width: 1140px; margin: 0 auto; padding: 1.5rem 2rem;
+  display: grid; grid-template-columns: 1fr 400px; gap: 1.5rem; align-items: start;
+}
+@media (max-width: 820px) { .layout { grid-template-columns: 1fr; padding: 1rem; } }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.25rem; }
+.card:last-child { margin-bottom: 0; }
+.card-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: var(--surface); }
+.card-header h2 { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.01em; }
+.card-body { padding: 1.25rem; }
+
+label { font-size: 11px; font-weight: 600; color: var(--text2); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+input[type=text], input[type=number], input[type=password], select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--rsm);
+  font-size: 14px; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.15s;
+  font-family: inherit;
+}
+input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(42,96,65,0.1); }
+.field { margin-bottom: 1rem; }
+.row { display: flex; gap: 10px; }
+.row .field { flex: 1; }
+
+/* INGREDIENT SEARCH */
+.ing-search-wrap { position: relative; }
+.ing-search-wrap input { padding-right: 80px; }
+.search-status {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px;
+}
+.search-spinner { width: 12px; height: 12px; border: 1.5px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.suggestions-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 50; max-height: 280px; overflow-y: auto;
+}
+.suggestion-item {
+  padding: 10px 14px; cursor: pointer; font-size: 13px; transition: background 0.1s;
+  border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+}
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover, .suggestion-item.selected { background: var(--green-light); }
+.suggestion-item .sug-name { font-weight: 500; }
+.suggestion-item .sug-kcal { font-size: 11px; color: var(--text3); }
+.suggestion-source { font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
+.src-usda { background: var(--blue-bg); color: var(--blue); }
+.src-ai { background: var(--green-bg); color: var(--green); }
+.src-local { background: var(--surface2); color: var(--text2); }
+.no-results { padding: 14px; font-size: 13px; color: var(--text3); text-align: center; }
+
+/* TABLE */
+.ing-table { width: 100%; border-collapse: collapse; }
+.ing-table th { font-size: 10px; color: var(--text3); font-weight: 600; text-align: left; padding: 4px 8px 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.ing-table th.right { text-align: right; }
+.ing-table td { padding: 6px 8px; border-top: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.ing-table tr:hover td { background: var(--bg); }
+.ing-name-cell { font-weight: 500; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 500; }
+.badge-ai { background: var(--green-bg); color: var(--green); }
+.badge-usda { background: var(--blue-bg); color: var(--blue); }
+.badge-unk { background: var(--amber-bg); color: var(--amber); }
+.del-btn { width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--text3); font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+.del-btn:hover { background: var(--red-bg); color: var(--red); border-color: #f0b0aa; }
+.total-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); padding: 8px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
+
+.btn { padding: 8px 14px; border-radius: var(--rsm); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text); transition: all 0.12s; font-family: inherit; }
+.btn:hover { background: var(--bg); border-color: var(--border2); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); width: 100%; padding: 10px; font-size: 14px; }
+.btn-green:hover { background: #235236; }
+.btn-green:disabled { background: var(--border2); border-color: var(--border2); cursor: not-allowed; }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); }
+.tab-btn { padding: 11px 16px; font-size: 13px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; font-family: inherit; }
+.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+.tab-pane { display: none; padding: 1.25rem; }
+.tab-pane.active { display: block; }
+
+/* MACROS */
+.macro-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1rem; }
+.macro-cell { background: var(--bg); border-radius: var(--rsm); padding: 12px 6px; text-align: center; }
+.macro-val { font-size: 20px; font-weight: 700; }
+.macro-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+.detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-top: 1px solid var(--border); }
+.detail-row .lbl { color: var(--text2); }
+.detail-row .val { font-weight: 500; }
+.prog-wrap { margin-top: 1rem; }
+.prog-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.prog-row { margin-bottom: 8px; }
+.prog-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+.prog-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+/* EU LABEL */
+.eu-label { max-width: 290px; border: 2px solid #111; border-radius: 3px; padding: 12px; font-family: 'Arial Narrow', Arial, sans-serif; }
+.eu-label .el-title { font-size: 26px; font-weight: 900; border-bottom: 8px solid #111; padding-bottom: 3px; margin-bottom: 3px; line-height: 1.1; }
+.eu-label .el-serv { font-size: 11px; margin-bottom: 8px; }
+.eu-label .el-cal-row { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 4px solid #111; padding-bottom: 5px; margin-bottom: 5px; }
+.eu-label .el-cal-lbl { font-size: 13px; font-weight: 700; }
+.eu-label .el-cal-num { font-size: 34px; font-weight: 900; line-height: 1; }
+.eu-label .el-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; border-bottom: 0.5px solid #aaa; }
+.eu-label .el-row.bold { font-weight: 700; }
+.eu-label .el-row.sub { padding-left: 14px; }
+.eu-label .el-note { font-size: 8.5px; color: #555; margin-top: 7px; border-top: 0.5px solid #aaa; padding-top: 5px; }
+
+/* AI */
+.api-notice { background: var(--amber-bg); border: 1px solid #e8cc70; border-radius: var(--rsm); padding: 10px 12px; font-size: 12px; color: var(--amber); margin-bottom: 1rem; }
+.api-notice strong { display: block; margin-bottom: 2px; font-size: 13px; }
+.ai-result { font-size: 14px; line-height: 1.75; margin-top: 1rem; }
+.ai-result h3, .ai-result strong { font-weight: 600; }
+.score-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+.score-hi { background: var(--green-bg); color: var(--green); }
+.score-mid { background: var(--amber-bg); color: var(--amber); }
+.score-lo { background: var(--red-bg); color: var(--red); }
+.loading-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text3); padding: 12px 0; }
+.err-box { padding: 10px 12px; background: var(--red-bg); color: var(--red); border-radius: var(--rsm); font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<!-- LANGUAGE SELECTION SCREEN -->
+<div id="lang-screen">
+  <div>
+    <div class="lang-logo"><div class="lang-logo-dot"></div>NutriForm</div>
+    <div class="lang-tagline" id="lang-tagline">AI Recipe & Nutrition Formulator</div>
+  </div>
+  <div class="lang-grid">
+    <button class="lang-btn" onclick="selectLang('bg')">
+      <span class="flag">🇧🇬</span>
+      <div class="lang-name">Български</div>
+      <div class="lang-native">Bulgarian</div>
+    </button>
+    <button class="lang-btn" onclick="selectLang('en')">
+      <span class="flag">🇬🇧</span>
+      <div class="lang-name">English</div>
+      <div class="lang-native">English</div>
+    </button>
+    <button class="lang-btn" onclick="selectLang('ru')">
+      <span class="flag">🇷🇺</span>
+      <div class="lang-name">Русский</div>
+      <div class="lang-native">Russian</div>
+    </button>
+    <button class="lang-btn" onclick="selectLang('uk')">
+      <span class="flag">🇺🇦</span>
+      <div class="lang-name">Українська</div>
+      <div class="lang-native">Ukrainian</div>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div>NutriForm</div>
+    <div class="topbar-right">
+      <span id="topbar-sub" style="font-size:12px; color:var(--text3)"></span>
+      <button class="lang-switch" onclick="switchLang()" id="lang-switch-btn">🌐 Language</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div>
+      <div class="card">
+        <div class="card-header"><span>📋</span><h2 id="lbl-product-info">Product Info</h2></div>
+        <div class="card-body">
+          <div class="row">
+            <div class="field" style="flex:2">
+              <label id="lbl-product-name">Product name</label>
+              <input type="text" id="product-name" oninput="onDataChange()">
+            </div>
+            <div class="field" style="flex:0 0 110px">
+              <label id="lbl-serving">Serving (g)</label>
+              <input type="number" id="serving-size" value="100" min="1" oninput="onDataChange()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>🧪</span><h2 id="lbl-ingredients">Ingredients</h2></div>
+        <div class="card-body">
+          <table class="ing-table">
+            <thead>
+              <tr>
+                <th id="th-name">Ingredient</th>
+                <th class="right" id="th-amount">Amount (g)</th>
+                <th class="right" id="th-kcal">kcal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ing-tbody"></tbody>
+          </table>
+
+          <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
+            <div class="row" style="align-items:flex-end; gap:8px;">
+              <div class="field" style="flex:2; margin-bottom:0; position:relative">
+                <label id="lbl-add-ing">Add ingredient</label>
+                <div class="ing-search-wrap">
+                  <input type="text" id="ing-search" autocomplete="off" oninput="onIngSearch()" onkeydown="onIngKeydown(event)">
+                  <div class="search-status" id="search-status"></div>
+                </div>
+                <div class="suggestions-dropdown" id="suggestions" style="display:none"></div>
+              </div>
+              <div class="field" style="flex:0 0 90px; margin-bottom:0">
+                <label id="lbl-amount">Amount (g)</label>
+                <input type="number" id="ing-amount" placeholder="g" min="0.1" step="0.1" onkeydown="if(event.key==='Enter') addIngredient()">
+              </div>
+              <div style="padding-bottom:1px">
+                <button class="btn" onclick="addIngredient()" id="btn-add">+ Add</button>
+              </div>
+            </div>
+            <div class="total-row">
+              <span id="lbl-total-weight">Total batch weight:</span>
+              <span id="total-weight-val" style="font-weight:600">0 g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('nutrition')" id="tab-btn-nutrition">Nutrition</button>
+        <button class="tab-btn" onclick="showTab('label')" id="tab-btn-label">Label</button>
+        <button class="tab-btn" onclick="showTab('ai')" id="tab-btn-ai">AI Analysis</button>
+      </div>
+
+      <!-- NUTRITION -->
+      <div class="tab-pane active" id="pane-nutrition">
+        <div class="macro-grid">
+          <div class="macro-cell"><div class="macro-val" id="r-cal">—</div><div class="macro-lbl" id="lbl-kcal">kcal</div></div>
+          <div class="macro-cell"><div class="macro-val" id="r-prot">—</div><div class="macro-lbl" id="lbl-prot">protein</div></div>
+          <div class="macro-cell"><div class="macro-val" id="r-carb">—</div><div class="macro-lbl" id="lbl-carb">carbs</div></div>
+          <div class="macro-cell"><div class="macro-val" id="r-fat">—</div><div class="macro-lbl" id="lbl-fat">fat</div></div>
+        </div>
+        <div style="font-size:12px; color:var(--text3); margin-bottom:12px" id="per-serving-label">Per 100g serving</div>
+        <div id="detail-rows"></div>
+        <div class="prog-wrap" id="prog-wrap" style="display:none">
+          <div class="prog-label" id="lbl-macro-dist">Macro distribution</div>
+          <div class="prog-row">
+            <div class="prog-header"><span id="lbl-pr-prot">Protein</span><span id="pct-prot">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill" id="bar-prot" style="width:0%;background:var(--green)"></div></div>
+          </div>
+          <div class="prog-row">
+            <div class="prog-header"><span id="lbl-pr-carb">Carbs</span><span id="pct-carb">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill" id="bar-carb" style="width:0%;background:#d4840a"></div></div>
+          </div>
+          <div class="prog-row">
+            <div class="prog-header"><span id="lbl-pr-fat">Fat</span><span id="pct-fat">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill" id="bar-fat" style="width:0%;background:#c44a2a"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LABEL -->
+      <div class="tab-pane" id="pane-label">
+        <div class="eu-label" id="eu-label">
+          <div class="el-title" id="el-name">Your product</div>
+          <div class="el-serv" id="el-serv">Serving: 100g</div>
+          <div class="el-cal-row">
+            <span class="el-cal-lbl" id="el-cal-lbl">Calories</span>
+            <span class="el-cal-num" id="el-cal">0</span>
+          </div>
+          <div id="el-rows"></div>
+          <div class="el-note" id="el-note">* % Daily Value based on 2000 kcal. For commercial use, lab analysis required. Values from USDA database.</div>
+        </div>
+        <button class="btn" onclick="printLabel()" style="margin-top:12px; font-size:12px" id="btn-print">🖨 Print label</button>
+      </div>
+
+      <!-- AI -->
+      <div class="tab-pane" id="pane-ai">
+        <button class="btn btn-green" onclick="analyzeWithAI()" id="btn-analyze">✨ Analyze with AI</button>
+        <div id="ai-output"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T = {
+  bg: {
+    tagline: "AI рецептурен формулатор",
+    topbarSub: "Хранителни технологии",
+    langBtn: "🌐 Език",
+    productInfo: "Информация за продукта",
+    productName: "Наименование на продукта",
+    productNamePh: "напр. Протеинов хляб с коприва",
+    serving: "Порция (г)",
+    ingredients: "Съставки",
+    thName: "Съставка",
+    thAmount: "Количество (г)",
+    thKcal: "ккал",
+    addIng: "Добави съставка",
+    searchPh: "Търси продукт на всеки език...",
+    amount: "Количество (г)",
+    btnAdd: "+ Добави",
+    totalWeight: "Общо тегло на партидата:",
+    tabNutrition: "Хранене",
+    tabLabel: "Етикет",
+    tabAI: "AI анализ",
+    kcal: "ккал",
+    protein: "Белтък г",
+    carbs: "Въглехид. г",
+    fat: "Мазнини г",
+    perServing: "На порция",
+    fiber: "Хранителни влакна",
+    sugar: "Захари",
+    sodium: "Натрий",
+    macroDist: "Разпределение на макронутриенти",
+    calories: "Калории",
+    totalFat: "Общо мазнини",
+    satFat: "Наситени мастни к-ни",
+    totalCarb: "Общо въглехидрати",
+    dietFiber: "Хранителни влакна",
+    sugars: "Захари",
+    proteins: "Белтъци",
+    elNote: "* % от препоръчителния дневен прием (2000 ккал). За търговска употреба е необходим лабораторен анализ.",
+    btnPrint: "🖨 Отпечатай етикет",
+    aiNoticeTitle: "⚠ Необходим е Anthropic API ключ",
+    aiNoticeBody: "Въведи ключа по-долу. Не се съхранява — само за текущата сесия.",
+    apiKeyLbl: "Anthropic API ключ",
+    btnAnalyze: "✨ Анализирай с AI",
+    aiLoading: "AI анализира рецептата...",
+    aiError: "Грешка",
+    srcUSDA: "USDA",
+    srcAI: "AI",
+    srcLocal: "база",
+    searchingUSDA: "Търси в USDA...",
+    searchingAI: "AI търси...",
+    noResults: "Няма резултати. Провери правописа.",
+    g: "г",
+    mg: "мг",
+    promptLang: "bg",
+    aiPrompt: (name, ings, serving, total, per) => `Ти си хранителен технолог. Анализирай тази рецепта на БЪЛГАРСКИ.
+
+Продукт: ${name}
+Съставки: ${ings}
+Порция: ${serving}г | Общо тегло: ${total}г
+Хранителни стойности на порция: ${Math.round(per.cal)} ккал, белтък ${per.prot.toFixed(1)}г, въглехидрати ${per.carb.toFixed(1)}г, мазнини ${per.fat.toFixed(1)}г, фибри ${per.fiber.toFixed(1)}г, натрий ${Math.round(per.sodium)}мг
+
+Отговори структурирано:
+1. Хранителни предимства (2-3 точки)
+2. Препоръки за подобряване
+3. Бележка за ЕС етикетиране (Регламент 1169/2011)
+4. Оценка X/10 с кратко обяснение
+
+До 200 думи. Конкретно и практично.`,
+  },
+  en: {
+    tagline: "AI Recipe & Nutrition Formulator",
+    topbarSub: "Food Technology",
+    langBtn: "🌐 Language",
+    productInfo: "Product Information",
+    productName: "Product name",
+    productNamePh: "e.g. High-protein sourdough loaf",
+    serving: "Serving (g)",
+    ingredients: "Ingredients",
+    thName: "Ingredient",
+    thAmount: "Amount (g)",
+    thKcal: "kcal",
+    addIng: "Add ingredient",
+    searchPh: "Search any ingredient in any language...",
+    amount: "Amount (g)",
+    btnAdd: "+ Add",
+    totalWeight: "Total batch weight:",
+    tabNutrition: "Nutrition",
+    tabLabel: "Label",
+    tabAI: "AI Analysis",
+    kcal: "kcal",
+    protein: "Protein g",
+    carbs: "Carbs g",
+    fat: "Fat g",
+    perServing: "Per serving",
+    fiber: "Dietary fiber",
+    sugar: "Sugars",
+    sodium: "Sodium",
+    macroDist: "Macro distribution",
+    calories: "Calories",
+    totalFat: "Total fat",
+    satFat: "Saturated fat",
+    totalCarb: "Total carbohydrates",
+    dietFiber: "Dietary fiber",
+    sugars: "Sugars",
+    proteins: "Protein",
+    elNote: "* % Daily Value based on 2000 kcal. For commercial use, laboratory analysis required. Values sourced from USDA database.",
+    btnPrint: "🖨 Print label",
+    aiNoticeTitle: "⚠ Anthropic API key required",
+    aiNoticeBody: "Enter your key below. Not stored — session only.",
+    apiKeyLbl: "Anthropic API Key",
+    btnAnalyze: "✨ Analyze with AI",
+    aiLoading: "AI is analyzing the recipe...",
+    aiError: "Error",
+    srcUSDA: "USDA",
+    srcAI: "AI",
+    srcLocal: "db",
+    searchingUSDA: "Searching USDA...",
+    searchingAI: "AI lookup...",
+    noResults: "No results. Check spelling or try English.",
+    g: "g",
+    mg: "mg",
+    promptLang: "en",
+    aiPrompt: (name, ings, serving, total, per) => `You are a food technologist. Analyze this recipe in ENGLISH.
+
+Product: ${name}
+Ingredients: ${ings}
+Serving: ${serving}g | Total batch: ${total}g
+Nutrition per serving: ${Math.round(per.cal)} kcal, protein ${per.prot.toFixed(1)}g, carbs ${per.carb.toFixed(1)}g, fat ${per.fat.toFixed(1)}g, fiber ${per.fiber.toFixed(1)}g, sodium ${Math.round(per.sodium)}mg
+
+Reply with structured analysis:
+1. Nutritional strengths (2-3 points)
+2. Improvement recommendations
+3. EU labeling note (Regulation 1169/2011)
+4. Score X/10 with brief reasoning
+
+Under 200 words. Specific and practical.`,
+  },
+  ru: {
+    tagline: "AI формулятор рецептур и питания",
+    topbarSub: "Пищевые технологии",
+    langBtn: "🌐 Язык",
+    productInfo: "Информация о продукте",
+    productName: "Наименование продукта",
+    productNamePh: "напр. Протеиновый хлеб на закваске",
+    serving: "Порция (г)",
+    ingredients: "Ингредиенты",
+    thName: "Ингредиент",
+    thAmount: "Количество (г)",
+    thKcal: "ккал",
+    addIng: "Добавить ингредиент",
+    searchPh: "Поиск любого продукта на любом языке...",
+    amount: "Количество (г)",
+    btnAdd: "+ Добавить",
+    totalWeight: "Общий вес партии:",
+    tabNutrition: "Питание",
+    tabLabel: "Этикетка",
+    tabAI: "AI анализ",
+    kcal: "ккал",
+    protein: "Белки г",
+    carbs: "Углеводы г",
+    fat: "Жиры г",
+    perServing: "На порцию",
+    fiber: "Пищевые волокна",
+    sugar: "Сахара",
+    sodium: "Натрий",
+    macroDist: "Распределение макронутриентов",
+    calories: "Калории",
+    totalFat: "Общий жир",
+    satFat: "Насыщенные жирные к-ты",
+    totalCarb: "Общие углеводы",
+    dietFiber: "Пищевые волокна",
+    sugars: "Сахара",
+    proteins: "Белки",
+    elNote: "* % от рекомендуемой суточной нормы (2000 ккал). Для коммерческого использования необходим лабораторный анализ.",
+    btnPrint: "🖨 Печать этикетки",
+    aiNoticeTitle: "⚠ Требуется ключ Anthropic API",
+    aiNoticeBody: "Введите ключ ниже. Не сохраняется — только для текущей сессии.",
+    apiKeyLbl: "Ключ Anthropic API",
+    btnAnalyze: "✨ Анализировать с AI",
+    aiLoading: "AI анализирует рецепт...",
+    aiError: "Ошибка",
+    srcUSDA: "USDA",
+    srcAI: "AI",
+    srcLocal: "БД",
+    searchingUSDA: "Поиск в USDA...",
+    searchingAI: "AI поиск...",
+    noResults: "Результатов нет. Проверьте написание.",
+    g: "г",
+    mg: "мг",
+    promptLang: "ru",
+    aiPrompt: (name, ings, serving, total, per) => `Ты технолог пищевого производства. Проанализируй этот рецепт на РУССКОМ языке.
+
+Продукт: ${name}
+Ингредиенты: ${ings}
+Порция: ${serving}г | Общий вес: ${total}г
+Пищевая ценность на порцию: ${Math.round(per.cal)} ккал, белки ${per.prot.toFixed(1)}г, углеводы ${per.carb.toFixed(1)}г, жиры ${per.fat.toFixed(1)}г, клетчатка ${per.fiber.toFixed(1)}г, натрий ${Math.round(per.sodium)}мг
+
+Ответь структурированно:
+1. Пищевые достоинства (2-3 пункта)
+2. Рекомендации по улучшению
+3. Примечание по маркировке ЕС (Регламент 1169/2011)
+4. Оценка X/10 с кратким обоснованием
+
+До 200 слов. Конкретно и практично.`,
+  },
+  uk: {
+    tagline: "AI формулятор рецептур та харчування",
+    topbarSub: "Харчові технології",
+    langBtn: "🌐 Мова",
+    productInfo: "Інформація про продукт",
+    productName: "Найменування продукту",
+    productNamePh: "напр. Протеїновий хліб на заквасці",
+    serving: "Порція (г)",
+    ingredients: "Інгредієнти",
+    thName: "Інгредієнт",
+    thAmount: "Кількість (г)",
+    thKcal: "ккал",
+    addIng: "Додати інгредієнт",
+    searchPh: "Пошук будь-якого продукту будь-якою мовою...",
+    amount: "Кількість (г)",
+    btnAdd: "+ Додати",
+    totalWeight: "Загальна вага партії:",
+    tabNutrition: "Харчування",
+    tabLabel: "Етикетка",
+    tabAI: "AI аналіз",
+    kcal: "ккал",
+    protein: "Білки г",
+    carbs: "Вуглеводи г",
+    fat: "Жири г",
+    perServing: "На порцію",
+    fiber: "Харчові волокна",
+    sugar: "Цукри",
+    sodium: "Натрій",
+    macroDist: "Розподіл макронутрієнтів",
+    calories: "Калорії",
+    totalFat: "Загальний жир",
+    satFat: "Насичені жирні к-ти",
+    totalCarb: "Загальні вуглеводи",
+    dietFiber: "Харчові волокна",
+    sugars: "Цукри",
+    proteins: "Білки",
+    elNote: "* % від рекомендованої добової норми (2000 ккал). Для комерційного використання необхідний лабораторний аналіз.",
+    btnPrint: "🖨 Друк етикетки",
+    aiNoticeTitle: "⚠ Потрібен ключ Anthropic API",
+    aiNoticeBody: "Введіть ключ нижче. Не зберігається — лише для поточної сесії.",
+    apiKeyLbl: "Ключ Anthropic API",
+    btnAnalyze: "✨ Аналізувати з AI",
+    aiLoading: "AI аналізує рецепт...",
+    aiError: "Помилка",
+    srcUSDA: "USDA",
+    srcAI: "AI",
+    srcLocal: "БД",
+    searchingUSDA: "Пошук у USDA...",
+    searchingAI: "AI пошук...",
+    noResults: "Результатів немає. Перевірте написання.",
+    g: "г",
+    mg: "мг",
+    promptLang: "uk",
+    aiPrompt: (name, ings, serving, total, per) => `Ти технолог харчового виробництва. Проаналізуй цей рецепт УКРАЇНСЬКОЮ мовою.
+
+Продукт: ${name}
+Інгредієнти: ${ings}
+Порція: ${serving}г | Загальна вага: ${total}г
+Харчова цінність на порцію: ${Math.round(per.cal)} ккал, білки ${per.prot.toFixed(1)}г, вуглеводи ${per.carb.toFixed(1)}г, жири ${per.fat.toFixed(1)}г, клітковина ${per.fiber.toFixed(1)}г, натрій ${Math.round(per.sodium)}мг
+
+Відповідай структуровано:
+1. Харчові переваги (2-3 пункти)
+2. Рекомендації щодо покращення
+3. Примітка щодо маркування ЄС (Регламент 1169/2011)
+4. Оцінка X/10 з коротким обґрунтуванням
+
+До 200 слів. Конкретно і практично.`,
+  }
+};
+
+// ─── LOCAL INGREDIENT FALLBACK DB (200+ items, works offline) ───────────────
+const LOCAL_DB = {
+  // EN keys (also used as canonical)
+  "wheat flour":         {cal:364,prot:10.3,carb:76.3,fat:1.0,fiber:2.7,sugar:0.3,sodium:2},
+  "whole wheat flour":   {cal:340,prot:13.2,carb:72.0,fat:1.9,fiber:10.7,sugar:0.4,sodium:2},
+  "rye flour":           {cal:325,prot:8.5,carb:68.0,fat:1.7,fiber:14.6,sugar:1.0,sodium:1},
+  "oat flour":           {cal:379,prot:13.0,carb:65.7,fat:6.9,fiber:9.4,sugar:1.0,sodium:3},
+  "chickpea flour":      {cal:387,prot:22.4,carb:57.8,fat:6.7,fiber:10.8,sugar:10.9,sodium:64},
+  "almond flour":        {cal:571,prot:21.4,carb:21.4,fat:50.0,fiber:10.7,sugar:4.3,sodium:1},
+  "nettle flour":        {cal:297,prot:19.0,carb:42.0,fat:3.0,fiber:11.0,sugar:2.0,sodium:40},
+  "carob flour":         {cal:222,prot:4.6,carb:49.1,fat:0.7,fiber:39.8,sugar:38.1,sodium:35},
+  "rice flour":          {cal:366,prot:6.0,carb:80.1,fat:1.4,fiber:2.4,sugar:0.1,sodium:0},
+  "corn flour":          {cal:361,prot:6.9,carb:76.8,fat:3.9,fiber:7.3,sugar:0.6,sodium:5},
+  "buckwheat flour":     {cal:335,prot:12.6,carb:70.6,fat:3.1,fiber:10.0,sugar:0,sodium:11},
+  "sourdough starter":   {cal:54,prot:1.5,carb:11.2,fat:0.2,fiber:0.4,sugar:0.5,sodium:5},
+  "yeast":               {cal:325,prot:40.4,carb:41.2,fat:7.6,fiber:26.9,sugar:0,sodium:51},
+  "water":               {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0},
+  "salt":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:38758},
+  "olive oil":           {cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:2},
+  "sunflower oil":       {cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0},
+  "butter":              {cal:717,prot:0.9,carb:0.1,fat:81.1,fiber:0,sugar:0.1,sodium:11},
+  "eggs":                {cal:143,prot:12.6,carb:0.7,fat:9.5,fiber:0,sugar:0.4,sodium:142},
+  "milk":                {cal:61,prot:3.2,carb:4.8,fat:3.3,fiber:0,sugar:5.1,sodium:43},
+  "cream":               {cal:345,prot:2.1,carb:2.9,fat:37.0,fiber:0,sugar:2.9,sodium:38},
+  "yogurt":              {cal:61,prot:3.5,carb:4.7,fat:3.3,fiber:0,sugar:4.7,sodium:46},
+  "cottage cheese":      {cal:98,prot:11.1,carb:3.4,fat:4.3,fiber:0,sugar:2.7,sodium:364},
+  "sugar":               {cal:387,prot:0,carb:99.8,fat:0,fiber:0,sugar:99.8,sodium:1},
+  "honey":               {cal:304,prot:0.3,carb:82.4,fat:0,fiber:0.2,sugar:82.1,sodium:4},
+  "brown sugar":         {cal:380,prot:0,carb:98.1,fat:0,fiber:0,sugar:97.0,sodium:28},
+  "maple syrup":         {cal:260,prot:0,carb:67.0,fat:0.1,fiber:0,sugar:60.5,sodium:12},
+  "stevia":              {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0},
+  "whey protein":        {cal:352,prot:75.0,carb:9.0,fat:3.5,fiber:0,sugar:5.0,sodium:400},
+  "pea protein":         {cal:340,prot:82.0,carb:3.0,fat:3.0,fiber:3.0,sugar:0.5,sodium:600},
+  "soy protein":         {cal:338,prot:81.0,carb:2.9,fat:3.4,fiber:1.6,sugar:0,sodium:1005},
+  "sunflower seeds":     {cal:584,prot:20.8,carb:20.0,fat:51.5,fiber:8.6,sugar:2.6,sodium:9},
+  "flaxseed":            {cal:534,prot:18.3,carb:28.9,fat:42.2,fiber:27.3,sugar:1.6,sodium:30},
+  "pumpkin seeds":       {cal:559,prot:30.2,carb:10.7,fat:49.1,fiber:6.0,sugar:1.4,sodium:7},
+  "sesame seeds":        {cal:573,prot:17.7,carb:23.5,fat:49.7,fiber:11.8,sugar:0.3,sodium:11},
+  "chia seeds":          {cal:486,prot:16.5,carb:42.1,fat:30.7,fiber:34.4,sugar:0,sodium:16},
+  "oats":                {cal:389,prot:16.9,carb:66.3,fat:6.9,fiber:10.6,sugar:0,sodium:2},
+  "rice":                {cal:365,prot:7.1,carb:80.0,fat:0.7,fiber:1.3,sugar:0,sodium:5},
+  "potato starch":       {cal:357,prot:0.1,carb:87.0,fat:0.1,fiber:0,sugar:0,sodium:11},
+  "cornstarch":          {cal:381,prot:0.3,carb:91.3,fat:0.1,fiber:2.8,sugar:0,sodium:9},
+  "baking powder":       {cal:53,prot:0,carb:27.7,fat:0,fiber:0.2,sugar:0,sodium:10600},
+  "baking soda":         {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:27400},
+  "cacao powder":        {cal:228,prot:19.6,carb:57.9,fat:13.7,fiber:37.0,sugar:1.7,sodium:21},
+  "dark chocolate":      {cal:546,prot:4.9,carb:59.4,fat:31.3,fiber:7.0,sugar:47.9,sodium:24},
+  "walnuts":             {cal:654,prot:15.2,carb:13.7,fat:65.2,fiber:6.7,sugar:2.6,sodium:2},
+  "almonds":             {cal:579,prot:21.2,carb:21.6,fat:49.9,fiber:12.5,sugar:4.4,sodium:1},
+  "hazelnuts":           {cal:628,prot:15.0,carb:16.7,fat:60.8,fiber:9.7,sugar:4.3,sodium:0},
+  "peanuts":             {cal:567,prot:25.8,carb:16.1,fat:49.2,fiber:8.5,sugar:4.7,sodium:18},
+  "raisins":             {cal:299,prot:3.1,carb:79.2,fat:0.5,fiber:3.7,sugar:59.2,sodium:11},
+  "dates":               {cal:277,prot:1.8,carb:74.0,fat:0.2,fiber:6.7,sugar:66.5,sodium:1},
+  "banana":              {cal:89,prot:1.1,carb:22.8,fat:0.3,fiber:2.6,sugar:12.2,sodium:1},
+  "apple":               {cal:52,prot:0.3,carb:13.8,fat:0.2,fiber:2.4,sugar:10.4,sodium:1},
+  "strawberry":          {cal:32,prot:0.7,carb:7.7,fat:0.3,fiber:2.0,sugar:4.9,sodium:1},
+  "blueberry":           {cal:57,prot:0.7,carb:14.5,fat:0.3,fiber:2.4,sugar:10.0,sodium:1},
+  "lemon":               {cal:29,prot:1.1,carb:9.3,fat:0.3,fiber:2.8,sugar:2.5,sodium:2},
+  "spinach":             {cal:23,prot:2.9,carb:3.6,fat:0.4,fiber:2.2,sugar:0.4,sodium:79},
+  "carrot":              {cal:41,prot:0.9,carb:9.6,fat:0.2,fiber:2.8,sugar:4.7,sodium:69},
+  "onion":               {cal:40,prot:1.1,carb:9.3,fat:0.1,fiber:1.7,sugar:4.2,sodium:4},
+  "garlic":              {cal:149,prot:6.4,carb:33.1,fat:0.5,fiber:2.1,sugar:1.0,sodium:17},
+  "tomato":              {cal:18,prot:0.9,carb:3.9,fat:0.2,fiber:1.2,sugar:2.6,sodium:5},
+  "mushrooms":           {cal:22,prot:3.1,carb:3.3,fat:0.3,fiber:1.0,sugar:2.0,sodium:5},
+  "cinnamon":            {cal:247,prot:4.0,carb:80.6,fat:1.2,fiber:53.1,sugar:2.2,sodium:10},
+  "vanilla":             {cal:288,prot:0.1,carb:12.7,fat:0.1,fiber:0,sugar:12.7,sodium:9},
+  "turmeric":            {cal:312,prot:9.7,carb:67.1,fat:3.3,fiber:22.7,sugar:3.2,sodium:38},
+  "ginger":              {cal:80,prot:1.8,carb:17.8,fat:0.8,fiber:2.0,sugar:1.7,sodium:13},
+  "black pepper":        {cal:251,prot:10.4,carb:63.9,fat:3.3,fiber:26.5,sugar:0.6,sodium:20},
+  "olive":               {cal:145,prot:1.0,carb:3.8,fat:15.3,fiber:3.3,sugar:0,sodium:735},
+  "chicken breast":      {cal:165,prot:31.0,carb:0,fat:3.6,fiber:0,sugar:0,sodium:74},
+  "salmon":              {cal:208,prot:20.4,carb:0,fat:13.4,fiber:0,sugar:0,sodium:59},
+  "tuna":                {cal:144,prot:23.6,carb:0,fat:4.9,fiber:0,sugar:0,sodium:47},
+  "beef":                {cal:250,prot:26.1,carb:0,fat:15.4,fiber:0,sugar:0,sodium:72},
+  "lentils":             {cal:116,prot:9.0,carb:20.1,fat:0.4,fiber:7.9,sugar:1.8,sodium:238},
+  "chickpeas":           {cal:164,prot:8.9,carb:27.4,fat:2.6,fiber:7.6,sugar:4.8,sodium:24},
+  "black beans":         {cal:132,prot:8.9,carb:23.7,fat:0.5,fiber:8.7,sugar:0.3,sodium:1},
+  "tofu":                {cal:76,prot:8.1,carb:1.9,fat:4.8,fiber:0.3,sugar:0.5,sodium:7},
+  "soy milk":            {cal:54,prot:3.3,carb:6.3,fat:1.8,fiber:0.5,sugar:4.0,sodium:51},
+  "coconut milk":        {cal:230,prot:2.3,carb:5.5,fat:23.8,fiber:2.2,sugar:3.3,sodium:15},
+  "coconut oil":         {cal:862,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0},
+  "avocado":             {cal:160,prot:2.0,carb:8.5,fat:14.7,fiber:6.7,sugar:0.7,sodium:7},
+  "sweet potato":        {cal:86,prot:1.6,carb:20.1,fat:0.1,fiber:3.0,sugar:4.2,sodium:55},
+  "oat bran":            {cal:246,prot:17.3,carb:66.2,fat:7.0,fiber:15.4,sugar:1.5,sodium:4},
+  "wheat bran":          {cal:216,prot:15.6,carb:64.5,fat:4.3,fiber:42.8,sugar:0.4,sodium:2},
+  "gelatin":             {cal:335,prot:85.6,carb:0,fat:0.1,fiber:0,sugar:0,sodium:196},
+  "agar agar":           {cal:26,prot:0.5,carb:6.8,fat:0,fiber:6.3,sugar:0,sodium:7},
+  "xanthan gum":         {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0},
+  "psyllium husk":       {cal:220,prot:2.0,carb:85.0,fat:1.0,fiber:71.0,sugar:0,sodium:30},
+  "apple cider vinegar": {cal:22,prot:0,carb:0.9,fat:0,fiber:0,sugar:0.4,sodium:5},
+  "sour cream":          {cal:198,prot:2.4,carb:4.6,fat:19.4,fiber:0,sugar:4.3,sodium:53},
+  "cream cheese":        {cal:342,prot:6.2,carb:4.1,fat:34.2,fiber:0,sugar:3.8,sodium:321},
+  // Bulgarian aliases
+  "пшенично брашно":     {cal:364,prot:10.3,carb:76.3,fat:1.0,fiber:2.7,sugar:0.3,sodium:2},
+  "пълнозърнесто брашно":{cal:340,prot:13.2,carb:72.0,fat:1.9,fiber:10.7,sugar:0.4,sodium:2},
+  "ръжено брашно":       {cal:325,prot:8.5,carb:68.0,fat:1.7,fiber:14.6,sugar:1.0,sodium:1},
+  "брашно от коприва":   {cal:297,prot:19.0,carb:42.0,fat:3.0,fiber:11.0,sugar:2.0,sodium:40},
+  "брашно от рожков":    {cal:222,prot:4.6,carb:49.1,fat:0.7,fiber:39.8,sugar:38.1,sodium:35},
+  "квас":                {cal:54,prot:1.5,carb:11.2,fat:0.2,fiber:0.4,sugar:0.5,sodium:5},
+  "мая":                 {cal:325,prot:40.4,carb:41.2,fat:7.6,fiber:26.9,sugar:0,sodium:51},
+  "вода":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0},
+  "сол":                 {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:38758},
+  "зехтин":              {cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:2},
+  "масло":               {cal:717,prot:0.9,carb:0.1,fat:81.1,fiber:0,sugar:0.1,sodium:11},
+  "яйца":                {cal:143,prot:12.6,carb:0.7,fat:9.5,fiber:0,sugar:0.4,sodium:142},
+  "мляко":               {cal:61,prot:3.2,carb:4.8,fat:3.3,fiber:0,sugar:5.1,sodium:43},
+  "захар":               {cal:387,prot:0,carb:99.8,fat:0,fiber:0,sugar:99.8,sodium:1},
+  "мед":                 {cal:304,prot:0.3,carb:82.4,fat:0,fiber:0.2,sugar:82.1,sodium:4},
+  "суроватъчен протеин": {cal:352,prot:75.0,carb:9.0,fat:3.5,fiber:0,sugar:5.0,sodium:400},
+  "грахов протеин":      {cal:340,prot:82.0,carb:3.0,fat:3.0,fiber:3.0,sugar:0.5,sodium:600},
+  "ленено семе":         {cal:534,prot:18.3,carb:28.9,fat:42.2,fiber:27.3,sugar:1.6,sodium:30},
+  "слънчогледови семки": {cal:584,prot:20.8,carb:20.0,fat:51.5,fiber:8.6,sugar:2.6,sodium:9},
+  "тиквени семки":       {cal:559,prot:30.2,carb:10.7,fat:49.1,fiber:6.0,sugar:1.4,sodium:7},
+  "сусам":               {cal:573,prot:17.7,carb:23.5,fat:49.7,fiber:11.8,sugar:0.3,sodium:11},
+  "кисело мляко":        {cal:61,prot:3.5,carb:4.7,fat:3.3,fiber:0,sugar:4.7,sodium:46},
+  "извара":              {cal:98,prot:11.1,carb:3.4,fat:4.3,fiber:0,sugar:2.7,sodium:364},
+  "спанак":              {cal:23,prot:2.9,carb:3.6,fat:0.4,fiber:2.2,sugar:0.4,sodium:79},
+  "моркови":             {cal:41,prot:0.9,carb:9.6,fat:0.2,fiber:2.8,sugar:4.7,sodium:69},
+  "чесън":               {cal:149,prot:6.4,carb:33.1,fat:0.5,fiber:2.1,sugar:1.0,sodium:17},
+  "какао":               {cal:228,prot:19.6,carb:57.9,fat:13.7,fiber:37.0,sugar:1.7,sodium:21},
+  "орехи":               {cal:654,prot:15.2,carb:13.7,fat:65.2,fiber:6.7,sugar:2.6,sodium:2},
+  "бадеми":              {cal:579,prot:21.2,carb:21.6,fat:49.9,fiber:12.5,sugar:4.4,sodium:1},
+  "нишесте":             {cal:381,prot:0.3,carb:91.3,fat:0.1,fiber:2.8,sugar:0,sodium:9},
+  "бакпулвер":           {cal:53,prot:0,carb:27.7,fat:0,fiber:0.2,sugar:0,sodium:10600},
+  "сода":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:27400},
+  "канела":              {cal:247,prot:4.0,carb:80.6,fat:1.2,fiber:53.1,sugar:2.2,sodium:10},
+  "стафиди":             {cal:299,prot:3.1,carb:79.2,fat:0.5,fiber:3.7,sugar:59.2,sodium:11},
+  "банан":               {cal:89,prot:1.1,carb:22.8,fat:0.3,fiber:2.6,sugar:12.2,sodium:1},
+  "ябълка":              {cal:52,prot:0.3,carb:13.8,fat:0.2,fiber:2.4,sugar:10.4,sodium:1},
+  "авокадо":             {cal:160,prot:2.0,carb:8.5,fat:14.7,fiber:6.7,sugar:0.7,sodium:7},
+  "кокосово масло":      {cal:862,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0},
+  "соево мляко":         {cal:54,prot:3.3,carb:6.3,fat:1.8,fiber:0.5,sugar:4.0,sodium:51},
+  "леща":                {cal:116,prot:9.0,carb:20.1,fat:0.4,fiber:7.9,sugar:1.8,sodium:238},
+  // Russian aliases
+  "пшеничная мука":      {cal:364,prot:10.3,carb:76.3,fat:1.0,fiber:2.7,sugar:0.3,sodium:2},
+  "цельнозерновая мука": {cal:340,prot:13.2,carb:72.0,fat:1.9,fiber:10.7,sugar:0.4,sodium:2},
+  "ржаная мука":         {cal:325,prot:8.5,carb:68.0,fat:1.7,fiber:14.6,sugar:1.0,sodium:1},
+  "овсяная мука":        {cal:379,prot:13.0,carb:65.7,fat:6.9,fiber:9.4,sugar:1.0,sodium:3},
+  "вода":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0},
+  "соль":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:38758},
+  "масло сливочное":     {cal:717,prot:0.9,carb:0.1,fat:81.1,fiber:0,sugar:0.1,sodium:11},
+  "яйца":                {cal:143,prot:12.6,carb:0.7,fat:9.5,fiber:0,sugar:0.4,sodium:142},
+  "молоко":              {cal:61,prot:3.2,carb:4.8,fat:3.3,fiber:0,sugar:5.1,sodium:43},
+  "сахар":               {cal:387,prot:0,carb:99.8,fat:0,fiber:0,sugar:99.8,sodium:1},
+  "мёд":                 {cal:304,prot:0.3,carb:82.4,fat:0,fiber:0.2,sugar:82.1,sodium:4},
+  "творог":              {cal:98,prot:11.1,carb:3.4,fat:4.3,fiber:0,sugar:2.7,sodium:364},
+  "морковь":             {cal:41,prot:0.9,carb:9.6,fat:0.2,fiber:2.8,sugar:4.7,sodium:69},
+  "чеснок":              {cal:149,prot:6.4,carb:33.1,fat:0.5,fiber:2.1,sugar:1.0,sodium:17},
+  "какао порошок":       {cal:228,prot:19.6,carb:57.9,fat:13.7,fiber:37.0,sugar:1.7,sodium:21},
+  "грецкие орехи":       {cal:654,prot:15.2,carb:13.7,fat:65.2,fiber:6.7,sugar:2.6,sodium:2},
+  "семена льна":         {cal:534,prot:18.3,carb:28.9,fat:42.2,fiber:27.3,sugar:1.6,sodium:30},
+  "кунжут":              {cal:573,prot:17.7,carb:23.5,fat:49.7,fiber:11.8,sugar:0.3,sodium:11},
+  "банан":               {cal:89,prot:1.1,carb:22.8,fat:0.3,fiber:2.6,sugar:12.2,sodium:1},
+  "овёс":                {cal:389,prot:16.9,carb:66.3,fat:6.9,fiber:10.6,sugar:0,sodium:2},
+  "шпинат":              {cal:23,prot:2.9,carb:3.6,fat:0.4,fiber:2.2,sugar:0.4,sodium:79},
+  // Ukrainian aliases
+  "пшеничне борошно":    {cal:364,prot:10.3,carb:76.3,fat:1.0,fiber:2.7,sugar:0.3,sodium:2},
+  "цільнозернове борошно":{cal:340,prot:13.2,carb:72.0,fat:1.9,fiber:10.7,sugar:0.4,sodium:2},
+  "житнє борошно":       {cal:325,prot:8.5,carb:68.0,fat:1.7,fiber:14.6,sugar:1.0,sodium:1},
+  "вода":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0},
+  "сіль":                {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:38758},
+  "масло вершкове":      {cal:717,prot:0.9,carb:0.1,fat:81.1,fiber:0,sugar:0.1,sodium:11},
+  "яйця":                {cal:143,prot:12.6,carb:0.7,fat:9.5,fiber:0,sugar:0.4,sodium:142},
+  "молоко":              {cal:61,prot:3.2,carb:4.8,fat:3.3,fiber:0,sugar:5.1,sodium:43},
+  "цукор":               {cal:387,prot:0,carb:99.8,fat:0,fiber:0,sugar:99.8,sodium:1},
+  "мед":                 {cal:304,prot:0.3,carb:82.4,fat:0,fiber:0.2,sugar:82.1,sodium:4},
+  "морква":              {cal:41,prot:0.9,carb:9.6,fat:0.2,fiber:2.8,sugar:4.7,sodium:69},
+  "часник":              {cal:149,prot:6.4,carb:33.1,fat:0.5,fiber:2.1,sugar:1.0,sodium:17},
+  "какао порошок":       {cal:228,prot:19.6,carb:57.9,fat:13.7,fiber:37.0,sugar:1.7,sodium:21},
+  "банан":               {cal:89,prot:1.1,carb:22.8,fat:0.3,fiber:2.6,sugar:12.2,sodium:1},
+  "вівсянка":            {cal:389,prot:16.9,carb:66.3,fat:6.9,fiber:10.6,sugar:0,sodium:2},
+  "шпинат":              {cal:23,prot:2.9,carb:3.6,fat:0.4,fiber:2.2,sugar:0.4,sodium:79},
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentLang = 'bg';
+let ingredients = [];
+let searchTimeout = null;
+let currentSuggestions = [];
+let selectedSuggIdx = -1;
+let aiNutritionCache = {};
+
+// ─── LANGUAGE ─────────────────────────────────────────────────────────────────
+function selectLang(lang) {
+  currentLang = lang;
+  document.getElementById('lang-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  applyTranslations();
+  // Set defaults based on language
+  if (lang === 'bg') {
+    ingredients = [
+      {name:'пълнозърнесто брашно', amount:400, source:'local'},
+      {name:'вода', amount:280, source:'local'},
+      {name:'квас', amount:80, source:'local'},
+      {name:'сол', amount:9, source:'local'},
+    ];
+    document.getElementById('product-name').placeholder = T.bg.productNamePh;
+  } else if (lang === 'en') {
+    ingredients = [
+      {name:'whole wheat flour', amount:400, source:'local'},
+      {name:'water', amount:280, source:'local'},
+      {name:'sourdough starter', amount:80, source:'local'},
+      {name:'salt', amount:9, source:'local'},
+    ];
+    document.getElementById('product-name').placeholder = T.en.productNamePh;
+  } else if (lang === 'ru') {
+    ingredients = [
+      {name:'цельнозерновая мука', amount:400, source:'local'},
+      {name:'вода', amount:280, source:'local'},
+      {name:'соль', amount:9, source:'local'},
+    ];
+    document.getElementById('product-name').placeholder = T.ru.productNamePh;
+  } else if (lang === 'uk') {
+    ingredients = [
+      {name:'цільнозернове борошно', amount:400, source:'local'},
+      {name:'вода', amount:280, source:'local'},
+      {name:'сіль', amount:9, source:'local'},
+    ];
+    document.getElementById('product-name').placeholder = T.uk.productNamePh;
+  }
+  renderIngredients();
+}
+
+function switchLang() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('lang-screen').style.display = 'flex';
+}
+
+function applyTranslations() {
+  const t = T[currentLang];
+  document.getElementById('topbar-sub').textContent = t.topbarSub;
+  document.getElementById('lang-switch-btn').textContent = t.langBtn;
+  document.getElementById('lbl-product-info').textContent = t.productInfo;
+  document.getElementById('lbl-product-name').textContent = t.productName;
+  document.getElementById('lbl-serving').textContent = t.serving;
+  document.getElementById('lbl-ingredients').textContent = t.ingredients;
+  document.getElementById('th-name').textContent = t.thName;
+  document.getElementById('th-amount').textContent = t.thAmount;
+  document.getElementById('th-kcal').textContent = t.thKcal;
+  document.getElementById('lbl-add-ing').textContent = t.addIng;
+  document.getElementById('ing-search').placeholder = t.searchPh;
+  document.getElementById('lbl-amount').textContent = t.amount;
+  document.getElementById('btn-add').textContent = t.btnAdd;
+  document.getElementById('lbl-total-weight').textContent = t.totalWeight;
+  document.getElementById('tab-btn-nutrition').textContent = t.tabNutrition;
+  document.getElementById('tab-btn-label').textContent = t.tabLabel;
+  document.getElementById('tab-btn-ai').textContent = t.tabAI;
+  document.getElementById('lbl-kcal').textContent = t.kcal;
+  document.getElementById('lbl-prot').textContent = t.protein;
+  document.getElementById('lbl-carb').textContent = t.carbs;
+  document.getElementById('lbl-fat').textContent = t.fat;
+  document.getElementById('lbl-macro-dist').textContent = t.macroDist;
+  document.getElementById('lbl-pr-prot').textContent = t.protein.split(' ')[0];
+  document.getElementById('lbl-pr-carb').textContent = t.carbs.split(' ')[0];
+  document.getElementById('lbl-pr-fat').textContent = t.fat.split(' ')[0];
+  document.getElementById('el-cal-lbl').textContent = t.calories;
+  document.getElementById('el-note').textContent = t.elNote;
+  document.getElementById('btn-print').textContent = t.btnPrint;
+  document.getElementById('btn-analyze').textContent = t.btnAnalyze;
+}
+
+// ─── INGREDIENT SEARCH ───────────────────────────────────────────────────────
+function onIngSearch() {
+  const q = document.getElementById('ing-search').value.trim();
+  clearTimeout(searchTimeout);
+  selectedSuggIdx = -1;
+  if (q.length < 2) { hideSuggestions(); return; }
+  searchTimeout = setTimeout(() => searchIngredient(q), 300);
+}
+
+async function searchIngredient(q) {
+  const t = T[currentLang];
+  currentSuggestions = [];
+
+  // 1. Local DB match
+  const localMatches = Object.keys(LOCAL_DB).filter(k =>
+    k.toLowerCase().includes(q.toLowerCase())
+  ).slice(0, 5).map(k => ({
+    name: k,
+    kcal: LOCAL_DB[k].cal,
+    source: 'local',
+    data: LOCAL_DB[k]
+  }));
+
+  if (localMatches.length > 0) {
+    currentSuggestions = localMatches;
+    renderSuggestions();
+  }
+
+  // 2. USDA search
+  showSearchStatus(t.searchingUSDA);
+  try {
+    const res = await fetch(
+      `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=8&api_key=DEMO_KEY`
+    );
+    const data = await res.json();
+    if (data.foods && data.foods.length > 0) {
+      const usdaItems = data.foods.slice(0, 6).map(f => {
+        const nutrients = {};
+        (f.foodNutrients || []).forEach(n => {
+          const v = n.value || 0;
+          if (n.nutrientId === 1008 || n.nutrientName?.includes('Energy')) nutrients.cal = v;
+          else if (n.nutrientId === 1003 || n.nutrientName?.includes('Protein')) nutrients.prot = v;
+          else if (n.nutrientId === 1005 || n.nutrientName?.includes('Carbohydrate')) nutrients.carb = v;
+          else if (n.nutrientId === 1004 || n.nutrientName?.includes('Total lipid')) nutrients.fat = v;
+          else if (n.nutrientId === 1079 || n.nutrientName?.includes('Fiber')) nutrients.fiber = v;
+          else if (n.nutrientId === 2000 || n.nutrientName?.includes('Sugars')) nutrients.sugar = v;
+          else if (n.nutrientId === 1093 || n.nutrientName?.includes('Sodium')) nutrients.sodium = v;
+        });
+        nutrients.cal = nutrients.cal || 0;
+        nutrients.prot = nutrients.prot || 0;
+        nutrients.carb = nutrients.carb || 0;
+        nutrients.fat = nutrients.fat || 0;
+        nutrients.fiber = nutrients.fiber || 0;
+        nutrients.sugar = nutrients.sugar || 0;
+        nutrients.sodium = nutrients.sodium || 0;
+        return {
+          name: f.description,
+          kcal: Math.round(nutrients.cal),
+          source: 'usda',
+          data: nutrients
+        };
+      });
+      // Merge: keep local, add USDA that aren't duplicates
+      const allNames = currentSuggestions.map(s => s.name.toLowerCase());
+      usdaItems.forEach(u => {
+        if (!allNames.some(n => n.includes(u.name.toLowerCase().substring(0, 8)))) {
+          currentSuggestions.push(u);
+        }
+      });
+      renderSuggestions();
+      hideSearchStatus();
+      return;
+    }
+  } catch(e) {}
+
+  // 3. AI fallback if no results yet
+  if (currentSuggestions.length === 0) {
+    showSearchStatus(t.searchingAI);
+    {
+      try {
+        const res = await fetch('/api/claude', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            max_tokens: 500,
+            messages: [{role: 'user', content:
+              `Provide nutritional data per 100g for this food: "${q}".
+Respond ONLY with a valid JSON array, no markdown, no extra text. Format:
+[{"name":"English name","kcal":123,"prot":10.0,"carb":20.0,"fat":5.0,"fiber":2.0,"sugar":3.0,"sodium":50}]
+Include 1-3 most relevant matches. Estimate if exact data unknown.`
+            }]
+          })
+        });
+        const d = await res.json();
+        const text = d.content?.map(b => b.text||'').join('') || '';
+        const clean = text.replace(/```json|```/g,'').trim();
+        const parsed = JSON.parse(clean);
+        parsed.forEach(item => {
+          currentSuggestions.push({
+            name: item.name,
+            kcal: Math.round(item.kcal),
+            source: 'ai',
+            data: {cal:item.kcal, prot:item.prot, carb:item.carb, fat:item.fat, fiber:item.fiber, sugar:item.sugar, sodium:item.sodium}
+          });
+        });
+      } catch(e) {}
+    }
+    if (currentSuggestions.length === 0) {
+      renderNoResults();
+    } else {
+      renderSuggestions();
+    }
+  }
+  hideSearchStatus();
+}
+
+function renderSuggestions() {
+  const t = T[currentLang];
+  const el = document.getElementById('suggestions');
+  if (currentSuggestions.length === 0) { renderNoResults(); return; }
+  el.innerHTML = '';
+  currentSuggestions.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'suggestion-item' + (i === selectedSuggIdx ? ' selected' : '');
+    const srcClass = s.source === 'usda' ? 'src-usda' : s.source === 'ai' ? 'src-ai' : 'src-local';
+    const srcLabel = s.source === 'usda' ? t.srcUSDA : s.source === 'ai' ? t.srcAI : t.srcLocal;
+    div.innerHTML = `<span class="sug-name">${s.name} <span class="suggestion-source ${srcClass}">${srcLabel}</span></span><span class="sug-kcal">${s.kcal} kcal/100g</span>`;
+    div.onclick = () => selectSuggestion(i);
+    el.appendChild(div);
+  });
+  el.style.display = 'block';
+}
+
+function renderNoResults() {
+  const el = document.getElementById('suggestions');
+  el.innerHTML = `<div class="no-results">${T[currentLang].noResults}</div>`;
+  el.style.display = 'block';
+}
+
+function hideSuggestions() {
+  document.getElementById('suggestions').style.display = 'none';
+  currentSuggestions = [];
+}
+
+function selectSuggestion(i) {
+  const s = currentSuggestions[i];
+  document.getElementById('ing-search').value = s.name;
+  aiNutritionCache[s.name.toLowerCase()] = s.data;
+  hideSuggestions();
+  document.getElementById('ing-amount').focus();
+}
+
+function onIngKeydown(e) {
+  const el = document.getElementById('suggestions');
+  if (el.style.display === 'none') return;
+  if (e.key === 'ArrowDown') {
+    selectedSuggIdx = Math.min(selectedSuggIdx + 1, currentSuggestions.length - 1);
+    renderSuggestions(); e.preventDefault();
+  } else if (e.key === 'ArrowUp') {
+    selectedSuggIdx = Math.max(selectedSuggIdx - 1, -1);
+    renderSuggestions(); e.preventDefault();
+  } else if (e.key === 'Enter' && selectedSuggIdx >= 0) {
+    selectSuggestion(selectedSuggIdx); e.preventDefault();
+  } else if (e.key === 'Escape') {
+    hideSuggestions();
+  }
+}
+
+function showSearchStatus(msg) {
+  document.getElementById('search-status').innerHTML = `<div class="search-spinner"></div>${msg}`;
+}
+function hideSearchStatus() {
+  document.getElementById('search-status').innerHTML = '';
+}
+
+// ─── INGREDIENT MANAGEMENT ───────────────────────────────────────────────────
+function addIngredient() {
+  const name = document.getElementById('ing-search').value.trim();
+  const amount = parseFloat(document.getElementById('ing-amount').value);
+  if (!name || isNaN(amount) || amount <= 0) return;
+  const source = aiNutritionCache[name.toLowerCase()] ? 'ai'
+    : LOCAL_DB[name.toLowerCase()] ? 'local' : 'unknown';
+  ingredients.push({name, amount, source});
+  document.getElementById('ing-search').value = '';
+  document.getElementById('ing-amount').value = '';
+  hideSuggestions();
+  renderIngredients();
+}
+
+function removeIng(idx) {
+  ingredients.splice(idx, 1);
+  renderIngredients();
+}
+
+function getNutrition(name) {
+  const key = name.toLowerCase();
+  return aiNutritionCache[key] || LOCAL_DB[key] || null;
+}
+
+function calcNutrition() {
+  const serving = parseFloat(document.getElementById('serving-size').value) || 100;
+  const totalWeight = ingredients.reduce((s, i) => s + i.amount, 0);
+  if (!totalWeight) return null;
+  let t = {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0};
+  ingredients.forEach(ing => {
+    const d = getNutrition(ing.name);
+    if (!d) return;
+    const f = ing.amount / 100;
+    Object.keys(t).forEach(k => t[k] += (d[k]||0) * f);
+  });
+  const scale = serving / totalWeight;
+  const per = {};
+  Object.keys(t).forEach(k => per[k] = t[k] * scale);
+  return {per, total:t, serving, totalWeight};
+}
+
+function renderIngredients() {
+  const t = T[currentLang];
+  const tbody = document.getElementById('ing-tbody');
+  tbody.innerHTML = '';
+  const totalWeight = ingredients.reduce((s,i) => s + i.amount, 0);
+  ingredients.forEach((ing, idx) => {
+    const d = getNutrition(ing.name);
+    const kcal = d ? Math.round(d.cal * ing.amount / 100) : '?';
+    const srcClass = ing.source === 'usda' ? 'badge-usda' : ing.source === 'ai' ? 'badge-ai' : ing.source === 'local' ? 'badge-usda' : 'badge-unk';
+    const srcLabel = ing.source === 'usda' ? t.srcUSDA : ing.source === 'ai' ? t.srcAI : ing.source === 'local' ? t.srcLocal : '?';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="ing-name-cell">${ing.name}<span class="badge ${srcClass}">${srcLabel}</span></div></td>
+      <td style="text-align:right">${ing.amount}${t.g}</td>
+      <td style="text-align:right; color:var(--text2)">${kcal}</td>
+      <td style="text-align:right"><button class="del-btn" onclick="removeIng(${idx})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('total-weight-val').textContent = totalWeight.toFixed(0) + ' ' + t.g;
+  updateResults();
+}
+
+function updateResults() {
+  const t = T[currentLang];
+  const r = calcNutrition();
+  const serving = parseFloat(document.getElementById('serving-size').value) || 100;
+
+  if (!r) {
+    ['r-cal','r-prot','r-carb','r-fat'].forEach(id => document.getElementById(id).textContent = '—');
+    document.getElementById('detail-rows').innerHTML = '';
+    return;
+  }
+  const p = r.per;
+  document.getElementById('r-cal').textContent = Math.round(p.cal);
+  document.getElementById('r-prot').textContent = p.prot.toFixed(1);
+  document.getElementById('r-carb').textContent = p.carb.toFixed(1);
+  document.getElementById('r-fat').textContent = p.fat.toFixed(1);
+  document.getElementById('per-serving-label').textContent = `${t.perServing} ${serving}${t.g}`;
+
+  document.getElementById('detail-rows').innerHTML = `
+    <div class="detail-row"><span class="lbl">${t.fiber}</span><span class="val">${p.fiber.toFixed(1)} ${t.g}</span></div>
+    <div class="detail-row"><span class="lbl">${t.sugar}</span><span class="val">${p.sugar.toFixed(1)} ${t.g}</span></div>
+    <div class="detail-row"><span class="lbl">${t.sodium}</span><span class="val">${Math.round(p.sodium)} ${t.mg}</span></div>
+  `;
+
+  const macroKcal = p.prot*4 + p.carb*4 + p.fat*9;
+  if (macroKcal > 0) {
+    document.getElementById('prog-wrap').style.display = 'block';
+    const pp = Math.round(p.prot*4/macroKcal*100);
+    const cp = Math.round(p.carb*4/macroKcal*100);
+    const fp = Math.round(p.fat*9/macroKcal*100);
+    document.getElementById('pct-prot').textContent = pp + '%';
+    document.getElementById('pct-carb').textContent = cp + '%';
+    document.getElementById('pct-fat').textContent = fp + '%';
+    document.getElementById('bar-prot').style.width = Math.min(pp,100) + '%';
+    document.getElementById('bar-carb').style.width = Math.min(cp,100) + '%';
+    document.getElementById('bar-fat').style.width = Math.min(fp,100) + '%';
+  }
+  updateLabel(r);
+}
+
+function updateLabel(r) {
+  const t = T[currentLang];
+  const p = r.per;
+  const name = document.getElementById('product-name').value || 'Product';
+  document.getElementById('el-name').textContent = name;
+  document.getElementById('el-serv').textContent = `${t.perServing}: ${r.serving}${t.g} | ${Math.round(r.totalWeight/r.serving)}x`;
+  document.getElementById('el-cal').textContent = Math.round(p.cal);
+  const dv = {fat:78, carb:275, fiber:28, prot:50, sodium:2300};
+  document.getElementById('el-rows').innerHTML = `
+    <div class="el-row bold"><span>${t.totalFat}</span><span>${p.fat.toFixed(1)}${t.g} ${Math.round(p.fat/dv.fat*100)}%*</span></div>
+    <div class="el-row sub"><span>${t.satFat}</span><span>—</span></div>
+    <div class="el-row bold"><span>${t.totalCarb}</span><span>${p.carb.toFixed(1)}${t.g} ${Math.round(p.carb/dv.carb*100)}%*</span></div>
+    <div class="el-row sub"><span>${t.dietFiber}</span><span>${p.fiber.toFixed(1)}${t.g} ${Math.round(p.fiber/dv.fiber*100)}%*</span></div>
+    <div class="el-row sub"><span>${t.sugars}</span><span>${p.sugar.toFixed(1)}${t.g}</span></div>
+    <div class="el-row bold"><span>${t.proteins}</span><span>${p.prot.toFixed(1)}${t.g} ${Math.round(p.prot/dv.prot*100)}%*</span></div>
+    <div class="el-row"><span>${t.sodium}</span><span>${Math.round(p.sodium)}${t.mg} ${Math.round(p.sodium/dv.sodium*100)}%*</span></div>
+  `;
+}
+
+function onDataChange() { updateResults(); }
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function showTab(name) {
+  ['nutrition','label','ai'].forEach(n => {
+    document.getElementById('tab-btn-'+n).classList.toggle('active', n===name);
+    document.getElementById('pane-'+n).classList.toggle('active', n===name);
+  });
+}
+
+// ─── PRINT ────────────────────────────────────────────────────────────────────
+function printLabel() {
+  const html = document.getElementById('eu-label').outerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Label</title><style>
+    body{font-family:'Arial Narrow',Arial,sans-serif;padding:20px}
+    .eu-label{max-width:290px;border:2px solid #111;border-radius:3px;padding:12px}
+    .el-title{font-size:26px;font-weight:900;border-bottom:8px solid #111;padding-bottom:3px;margin-bottom:3px;line-height:1.1}
+    .el-serv{font-size:11px;margin-bottom:8px}
+    .el-cal-row{display:flex;justify-content:space-between;align-items:baseline;border-bottom:4px solid #111;padding-bottom:5px;margin-bottom:5px}
+    .el-cal-lbl{font-size:13px;font-weight:700}.el-cal-num{font-size:34px;font-weight:900;line-height:1}
+    .el-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;border-bottom:0.5px solid #aaa}
+    .el-row.bold{font-weight:700}.el-row.sub{padding-left:14px}
+    .el-note{font-size:8.5px;color:#555;margin-top:7px;border-top:0.5px solid #aaa;padding-top:5px}
+  </style></head><body>${html}<script>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+// ─── AI ANALYSIS ──────────────────────────────────────────────────────────────
+async function analyzeWithAI() {
+  const t = T[currentLang];
+  const r = calcNutrition();
+  if (!r || !ingredients.length) return;
+  const btn = document.getElementById('btn-analyze');
+  btn.disabled = true;
+  const output = document.getElementById('ai-output');
+  output.innerHTML = `<div class="loading-row"><div class="search-spinner"></div>${t.aiLoading}</div>`;
+  const ingList = ingredients.map(i => `${i.name} (${i.amount}${t.g})`).join(', ');
+  const name = document.getElementById('product-name').value || '—';
+  const prompt = t.aiPrompt(name, ingList, r.serving, r.totalWeight.toFixed(0), r.per);
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({max_tokens:1000, messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content.map(b=>b.text||'').join('');
+    const scoreMatch = text.match(/(\d+)\/10/);
+    let scoreHTML = '';
+    if (scoreMatch) {
+      const sc = parseInt(scoreMatch[1]);
+      const cls = sc>=7?'score-hi':sc>=5?'score-mid':'score-lo';
+      scoreHTML = `<div class="score-pill ${cls}">${sc>=7?'✅':sc>=5?'⚠️':'❌'} ${sc}/10</div>`;
+    }
+    const fmt = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    output.innerHTML = `<div class="ai-result">${scoreHTML}${fmt}</div>`;
+  } catch(e) {
+    output.innerHTML = `<div class="err-box">${t.aiError}: ${e.message}</div>`;
+  }
+  btn.disabled = false;
+  btn.textContent = t.btnAnalyze;
+}
+
+// Close suggestions on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ing-search-wrap') && !e.target.closest('#suggestions')) hideSuggestions();
+});
+document.getElementById('serving-size').addEventListener('input', onDataChange);
+</script>
+</body>
+</html>
