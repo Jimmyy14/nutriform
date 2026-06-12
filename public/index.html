@@ -545,6 +545,13 @@ const T = {
     noResults: "Няма резултати. Провери правописа.",
     g: "г",
     mg: "мг",
+    proposalTitle: "Предложена нова рецептура:",
+    diffNew: "ново",
+    diffRemoved: "премахнато",
+    btnApply: "Приложи",
+    btnReject: "Откажи",
+    appliedMsg: "Рецептата е обновена! Хранителните стойности и етикетът са преизчислени.",
+    unknownIngWarn: "Съставки без данни в базата ще се покажат като 'непознат' — потърси ги през полето за добавяне, за да им заредиш стойности.",
     ptypeHuman: "🍞 Храни за хора",
     ptypeFeed: "🐕 Храни за животни",
     feedNoteInput: "Въведи аналитичните съставки от протокола на БАБХ (на 100 г, в %).",
@@ -694,6 +701,13 @@ const T = {
     noResults: "No results. Check spelling or try English.",
     g: "g",
     mg: "mg",
+    proposalTitle: "Proposed new formulation:",
+    diffNew: "new",
+    diffRemoved: "removed",
+    btnApply: "Apply",
+    btnReject: "Reject",
+    appliedMsg: "Recipe updated! Nutrition values and label recalculated.",
+    unknownIngWarn: "Ingredients without database values will show as 'unknown' — search them via the add field to load their data.",
     ptypeHuman: "🍞 Human food",
     ptypeFeed: "🐕 Pet feed",
     feedNoteInput: "Enter analytical constituents from your lab report (per 100 g, in %).",
@@ -843,6 +857,13 @@ Under 200 words. Specific and practical.`,
     noResults: "Результатов нет. Проверьте написание.",
     g: "г",
     mg: "мг",
+    proposalTitle: "Предложенная новая рецептура:",
+    diffNew: "новое",
+    diffRemoved: "удалено",
+    btnApply: "Применить",
+    btnReject: "Отклонить",
+    appliedMsg: "Рецепт обновлён! Пищевая ценность и этикетка пересчитаны.",
+    unknownIngWarn: "Ингредиенты без данных в базе отобразятся как «неизвестный» — найдите их через поле добавления, чтобы загрузить значения.",
     ptypeHuman: "🍞 Продукты для людей",
     ptypeFeed: "🐕 Корма для животных",
     feedNoteInput: "Введите аналитические составляющие из лабораторного протокола (на 100 г, в %).",
@@ -993,6 +1014,13 @@ Under 200 words. Specific and practical.`,
     noResults: "Результатів немає. Перевірте написання.",
     g: "г",
     mg: "мг",
+    proposalTitle: "Запропонована нова рецептура:",
+    diffNew: "нове",
+    diffRemoved: "видалено",
+    btnApply: "Застосувати",
+    btnReject: "Відхилити",
+    appliedMsg: "Рецепт оновлено! Харчова цінність та етикетка перераховані.",
+    unknownIngWarn: "Інгредієнти без даних у базі відобразяться як «невідомий» — знайдіть їх через поле додавання, щоб завантажити значення.",
     ptypeHuman: "🍞 Продукти для людей",
     ptypeFeed: "🐕 Корми для тварин",
     feedNoteInput: "Введіть аналітичні складові з лабораторного протоколу (на 100 г, у %).",
@@ -2025,22 +2053,27 @@ async function improveRecipe() {
   const ingList = ingredients.map(i => `${i.name} (${i.amount}${t.g})`).join(', ');
   const name = document.getElementById('product-name').value || '—';
   const langName = {bg:'БЪЛГАРСКИ', en:'ENGLISH', ru:'РУССКИЙ', uk:'УКРАЇНСЬКА'}[currentLang];
-  const prompt = `You are a food technologist. Respond in ${langName} only.
+  const dbKeys = Object.keys(LOCAL_DB).join(', ');
+  const prompt = `You are a food technologist. Improve this recipe.
  
 Product: ${name}
 Current recipe: ${ingList}
 Total batch: ${r.totalWeight.toFixed(0)}g
-Current nutrition per 100g: ${Math.round(r.per.cal*100/r.serving)} kcal, protein ${(r.per.prot*100/r.serving).toFixed(1)}g, carbs ${(r.per.carb*100/r.serving).toFixed(1)}g, fat ${(r.per.fat*100/r.serving).toFixed(1)}g, fiber ${(r.per.fiber*100/r.serving).toFixed(1)}g, sodium ${Math.round(r.per.sodium*100/r.serving)}mg
+Current per 100g: ${Math.round(r.per.cal*100/r.serving)} kcal, protein ${(r.per.prot*100/r.serving).toFixed(1)}g, fat ${(r.per.fat*100/r.serving).toFixed(1)}g, fiber ${(r.per.fiber*100/r.serving).toFixed(1)}g, sodium ${Math.round(r.per.sodium*100/r.serving)}mg
  
 GOAL: ${goalText}
  
-Provide an IMPROVED version of this recipe:
-1. Full new ingredient list WITH EXACT GRAM AMOUNTS (modify amounts, substitute or add ingredients as needed)
-2. Brief explanation of each change (1 line per change)
-3. Expected nutritional impact
-4. Keep the product technologically feasible (baking/food science constraints apply)
+Respond ONLY with valid JSON, no markdown fences, no extra text:
+{
+  "recipe": [{"name": "ingredient name", "amount": 123}],
+  "explanation": "explanation of changes in ${langName}, max 120 words, use \\n for line breaks"
+}
  
-Under 250 words. Practical, specific grams.`;
+RULES:
+- "recipe" is the COMPLETE new ingredient list with exact gram amounts
+- Prefer ingredient names from this list when applicable (they have nutrition data): ${dbKeys}
+- Recipe must stay technologically feasible (baking/food science)
+- Keep total batch weight within ±15% of original`;
   try {
     const res = await fetch('/api/claude', {
       method: 'POST',
@@ -2050,13 +2083,70 @@ Under 250 words. Practical, specific grams.`;
     const data = await res.json();
     if (data.error) throw new Error(typeof data.error === 'string' ? data.error : data.error.message);
     const text = data.content.map(b=>b.text||'').join('');
-    const fmt = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-    output.innerHTML = `<div class="ai-result">${fmt}</div>`;
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    if (!Array.isArray(parsed.recipe) || !parsed.recipe.length) throw new Error('bad format');
+    renderImproveProposal(parsed);
   } catch(e) {
     output.innerHTML = `<div class="err-box">${t.aiError}: ${e.message}</div>`;
   }
   btn.disabled = false;
 }
+ 
+let pendingRecipe = null;
+function renderImproveProposal(parsed) {
+  const t = T[currentLang];
+  pendingRecipe = parsed.recipe.map(i => ({
+    name: String(i.name).toLowerCase(),
+    amount: Math.max(0, parseFloat(i.amount) || 0)
+  })).filter(i => i.name && i.amount > 0);
+  // Build old->new comparison
+  const oldMap = {};
+  ingredients.forEach(i => oldMap[i.name.toLowerCase()] = i.amount);
+  const newMap = {};
+  pendingRecipe.forEach(i => newMap[i.name] = i.amount);
+  const allNames = [...new Set([...Object.keys(oldMap), ...Object.keys(newMap)])];
+  let rows = '';
+  allNames.forEach(n => {
+    const o = oldMap[n], nw = newMap[n];
+    let badge = '';
+    if (o === undefined) badge = `<span class="badge badge-ai">+ ${t.diffNew}</span>`;
+    else if (nw === undefined) badge = `<span class="badge" style="background:var(--red-bg);color:var(--red)">− ${t.diffRemoved}</span>`;
+    else if (o !== nw) badge = `<span class="badge badge-usda">${o}${t.g} → ${nw}${t.g}</span>`;
+    else badge = `<span class="badge" style="background:var(--surface2);color:var(--text3)">=</span>`;
+    rows += `<div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px;"><span style="font-weight:500">${n}</span>${badge}</div>`;
+  });
+  const expl = (parsed.explanation || '').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  document.getElementById('ai-output').innerHTML = `
+    <div class="ai-result" style="margin-top:12px">
+      <div style="font-weight:600; margin-bottom:8px">${t.proposalTitle}</div>
+      ${rows}
+      <div style="margin:10px 0; font-size:13.5px; line-height:1.6; color:var(--text2)">${expl}</div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-green" style="flex:1" onclick="applyProposal()">✅ ${t.btnApply}</button>
+        <button class="btn" style="flex:1" onclick="rejectProposal()">✕ ${t.btnReject}</button>
+      </div>
+      <div class="lab-note" style="margin-top:10px">${t.unknownIngWarn}</div>
+    </div>`;
+}
+ 
+function applyProposal() {
+  if (!pendingRecipe) return;
+  ingredients = pendingRecipe.map(i => ({
+    name: i.name,
+    amount: i.amount,
+    source: (aiNutritionCache[i.name] || LOCAL_DB[i.name]) ? 'local' : 'unknown'
+  }));
+  pendingRecipe = null;
+  renderIngredients();
+  document.getElementById('ai-output').innerHTML = `<div class="lab-note" style="margin-top:12px">✅ ${T[currentLang].appliedMsg}</div>`;
+}
+ 
+function rejectProposal() {
+  pendingRecipe = null;
+  document.getElementById('ai-output').innerHTML = '';
+}
+ 
 // Close suggestions on outside click
 document.addEventListener('click', e => {
   if (!e.target.closest('.ing-search-wrap') && !e.target.closest('#suggestions')) hideSuggestions();
