@@ -1,9 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NutriForm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Playfair+Display:wght@800&family=Oswald:wght@600&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #f5f4f0;
@@ -181,6 +184,30 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .score-lo { background: var(--red-bg); color: var(--red); }
 .loading-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text3); padding: 12px 0; }
 .err-box { padding: 10px 12px; background: var(--red-bg); color: var(--red); border-radius: var(--rsm); font-size: 13px; margin-top: 10px; }
+
+/* ALLERGENS */
+.allergen-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+.allergen-chip { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: var(--rsm); border: 1px solid var(--border); cursor: pointer; font-size: 12.5px; transition: all 0.12s; background: var(--bg); }
+.allergen-chip:hover { border-color: var(--border2); }
+.allergen-chip.on { background: var(--amber-bg); border-color: #e8cc70; color: var(--amber); font-weight: 600; }
+.allergen-chip input { display: none; }
+/* PRINT CONTROLS */
+.print-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+/* IMPROVE */
+.goal-select { margin-bottom: 10px; }
+.btn-amber { background: #8a6d1f; color: #fff; border-color: #8a6d1f; width: 100%; padding: 10px; font-size: 14px; margin-top: 10px; }
+.btn-amber:hover { background: #74591a; }
+.el-allergens { font-size: 11px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #aaa; }
+.el-allergens b { font-weight: 800; }
+
+/* LAB MODE */
+.mode-toggle { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--rsm); overflow: hidden; }
+.mode-btn { flex: 1; padding: 9px; font-size: 13px; font-weight: 500; border: none; background: var(--bg); cursor: pointer; color: var(--text2); font-family: inherit; transition: all 0.15s; }
+.mode-btn.on { background: var(--green); color: #fff; font-weight: 600; }
+.lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.lab-grid .field { margin-bottom: 0; }
+.lab-grid input { font-size: 13px; padding: 7px 9px; }
+.lab-note { font-size: 11.5px; color: var(--text2); background: var(--bg); border-radius: var(--rsm); padding: 8px 10px; margin-bottom: 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -284,6 +311,13 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
           </div>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-header"><span>⚠️</span><h2 id="lbl-allergens">Allergens (EU 1169/2011)</h2></div>
+        <div class="card-body">
+          <div class="allergen-grid" id="allergen-grid"></div>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT -->
@@ -323,22 +357,107 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 
       <!-- LABEL -->
       <div class="tab-pane" id="pane-label">
-        <div class="eu-label" id="eu-label">
-          <div class="el-title" id="el-name">Your product</div>
-          <div class="el-serv" id="el-serv">Serving: 100g</div>
-          <div class="el-cal-row">
-            <span class="el-cal-lbl" id="el-cal-lbl">Calories</span>
-            <span class="el-cal-num" id="el-cal">0</span>
-          </div>
-          <div id="el-rows"></div>
-          <div class="el-note" id="el-note">* % Daily Value based on 2000 kcal. For commercial use, lab analysis required. Values from USDA database.</div>
+        <div class="mode-toggle">
+          <button class="mode-btn on" id="mode-calc" onclick="setLabelMode('calc')">Calculated</button>
+          <button class="mode-btn" id="mode-lab" onclick="setLabelMode('lab')">Lab analysis</button>
         </div>
-        <button class="btn" onclick="printLabel()" style="margin-top:12px; font-size:12px" id="btn-print">🖨 Print label</button>
+        <div id="lab-inputs" style="display:none">
+          <div class="lab-note" id="lab-note">Enter values per 100 g from your laboratory report.</div>
+          <div class="lab-grid">
+            <div class="field"><label id="ll-kcal">Energy (kcal)</label><input type="number" id="lab-kcal" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-fat">Fat (g)</label><input type="number" id="lab-fat" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-satfat">Saturates (g)</label><input type="number" id="lab-satfat" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-carb">Carbohydrate (g)</label><input type="number" id="lab-carb" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-sugar">Sugars (g)</label><input type="number" id="lab-sugar" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-fiber">Fibre (g)</label><input type="number" id="lab-fiber" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-prot">Protein (g)</label><input type="number" id="lab-prot" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="ll-salt">Salt (g)</label><input type="number" id="lab-salt" step="0.01" min="0" oninput="updateResults()"></div>
+          </div>
+        </div>
+        <div class="eu-label" id="eu-label">
+          <div class="el-title" id="el-name">Product</div>
+          <div class="el-serv" id="el-batch"></div>
+          <div style="font-size:12px; font-weight:700; border-bottom:4px solid #111; padding-bottom:3px; margin-bottom:3px;" id="el-per100">Хранителна информация на 100 г</div>
+          <div id="el-rows"></div>
+          <div class="el-allergens" id="el-allergens" style="display:none"></div>
+          <div class="el-note" id="el-note"></div>
+        </div>
+        <div class="print-controls" style="grid-template-columns:1fr 1fr; border-top:none; padding-top:0; margin-top:14px;">
+          <div>
+            <label id="lbl-font">Font</label>
+            <select id="label-font" onchange="applyLabelDesign()">
+              <option value="narrow">Narrow</option>
+              <option value="modern">Modern</option>
+              <option value="classic">Classic</option>
+            </select>
+          </div>
+          <div>
+            <label id="lbl-title-font">Title font</label>
+            <select id="label-title-font" onchange="applyLabelDesign()">
+              <option value="same">Same as table</option>
+              <option value="script">Script ✍</option>
+              <option value="elegant">Elegant</option>
+              <option value="bold">Bold poster</option>
+              <option value="garamond">Garamond</option>
+            </select>
+          </div>
+          <div>
+            <label id="lbl-border">Border</label>
+            <select id="label-border" onchange="applyLabelDesign()">
+              <option value="thick">■ Thick</option>
+              <option value="thin">□ Thin</option>
+              <option value="none">— None</option>
+            </select>
+          </div>
+          <div>
+            <label id="lbl-color">Color</label>
+            <select id="label-color" onchange="applyLabelDesign()">
+              <option value="#111111">⬛ Black</option>
+              <option value="#1d4a33">🟩 Green</option>
+              <option value="#1a3a5c">🟦 Navy</option>
+              <option value="#4a2c17">🟫 Brown</option>
+              <option value="#6b1d2a">🟥 Bordeaux</option>
+              <option value="#4a3463">🟪 Plum</option>
+              <option value="#1f5c5c">🌊 Teal</option>
+              <option value="#8a5a1e">🟨 Ochre</option>
+              <option value="#3d3d3d">◼ Graphite</option>
+              <option value="#5c4033">🤎 Chocolate</option>
+            </select>
+          </div>
+        </div>
+        <div class="print-controls">
+          <div>
+            <label id="lbl-label-size">Label size</label>
+            <select id="label-size">
+              <option value="S">S — 55×70 mm (12/стр.)</option>
+              <option value="M" selected>M — 70×95 mm (6/стр.)</option>
+              <option value="L">L — 95×130 mm (2/стр.)</option>
+            </select>
+          </div>
+          <div>
+            <label id="lbl-copies">Copies</label>
+            <input type="number" id="label-copies" value="6" min="1" max="30">
+          </div>
+        </div>
+        <button class="btn btn-green" onclick="printLabels()" style="margin-top:12px" id="btn-print">🖨 Print labels</button>
       </div>
 
       <!-- AI -->
       <div class="tab-pane" id="pane-ai">
         <button class="btn btn-green" onclick="analyzeWithAI()" id="btn-analyze">✨ Analyze with AI</button>
+        <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border)">
+          <div class="goal-select">
+            <label id="lbl-goal">Improvement goal</label>
+            <select id="improve-goal">
+              <option value="protein">↑ Protein</option>
+              <option value="salt">↓ Salt</option>
+              <option value="fiber">↑ Fiber</option>
+              <option value="kcal">↓ Calories</option>
+              <option value="overall">★ Overall</option>
+            </select>
+          </div>
+          <button class="btn btn-amber" onclick="improveRecipe()" id="btn-improve">🔧 Improve recipe</button>
+        </div>
         <div id="ai-output"></div>
       </div>
     </div>
@@ -400,6 +519,68 @@ const T = {
     noResults: "Няма резултати. Провери правописа.",
     g: "г",
     mg: "мг",
+    modeCalc: "Изчислени",
+    modeLab: "Лабораторен анализ",
+    labNoteInput: "Въведи стойностите на 100 г от лабораторния протокол.",
+    labNote: "Стойности съгласно лабораторен анализ. Етикет по Регламент (ЕС) 1169/2011.",
+    llKcal: "Енергия (kcal)",
+    llFat: "Мазнини (г)",
+    llSatfat: "Наситени (г)",
+    llCarb: "Въглехидрати (г)",
+    llSugar: "Захари (г)",
+    llFiber: "Влакнини (г)",
+    llProt: "Белтъци (г)",
+    llSalt: "Сол (г)",
+    designTitleFont: "Шрифт на заглавието",
+    tfSame: "Като таблицата",
+    tfScript: "Ръкописен ✍",
+    tfElegant: "Елегантен",
+    tfBold: "Плакатен",
+    tfGaramond: "Гарамонд",
+    colorBordeaux: "🟥 Бордо",
+    colorPlum: "🟪 Слива",
+    colorTeal: "🌊 Морскозелен",
+    colorOchre: "🟨 Охра",
+    colorGraphite: "◼ Графит",
+    colorChocolate: "🤎 Шоколад",
+    designFont: "Шрифт на таблицата",
+    designBorder: "Рамка",
+    designColor: "Цвят",
+    fontNarrow: "Тесен (класически етикет)",
+    fontModern: "Модерен",
+    fontClassic: "Класически (серифен)",
+    borderThick: "■ Плътна",
+    borderThin: "□ Тънка",
+    borderNone: "— Без рамка",
+    colorBlack: "⬛ Черен",
+    colorGreen: "🟩 Тъмнозелен",
+    colorNavy: "🟦 Тъмносин",
+    colorBrown: "🟫 Кафяв",
+    allergensTitle: "Алергени (ЕС 1169/2011)",
+    contains: "Съдържа",
+    per100: "Хранителна информация на 100 г",
+    energy: "Енергийна стойност",
+    fatEU: "Мазнини",
+    satFatEU: "от които наситени мастни киселини",
+    carbEU: "Въглехидрати",
+    sugarEU: "от които захари",
+    fiberEU: "Влакнини",
+    proteinEU: "Белтъци",
+    saltEU: "Сол",
+    batchInfo: "Партида",
+    labelSize: "Размер на етикета",
+    copies: "Брой етикети",
+    btnPrintLabels: "🖨 Разпечатай етикети",
+    goalLbl: "Цел на подобрението",
+    goalProtein: "↑ Повече белтък",
+    goalSalt: "↓ По-малко сол",
+    goalFiber: "↑ Повече влакнини",
+    goalKcal: "↓ По-малко калории",
+    goalOverall: "★ Цялостно подобрение",
+    btnImprove: "🔧 Подобри рецептата",
+    improving: "AI подобрява рецептата...",
+    euNote: "Стойностите са изчислителни (база данни USDA). За търговска употреба е необходим лабораторен анализ съгласно Регламент (ЕС) 1169/2011.",
+    allergens: {gluten:"Глутен (зърнени)", crust:"Ракообразни", eggs:"Яйца", fish:"Риба", peanuts:"Фъстъци", soy:"Соя", milk:"Мляко (вкл. лактоза)", nuts:"Ядки", celery:"Целина", mustard:"Горчица", sesame:"Сусам", sulph:"Серен диоксид/сулфити", lupin:"Лупина", moll:"Мекотели"},
     promptLang: "bg",
     aiPrompt: (name, ings, serving, total, per) => `Ти си хранителен технолог. Анализирай тази рецепта на БЪЛГАРСКИ.
 
@@ -468,6 +649,68 @@ const T = {
     noResults: "No results. Check spelling or try English.",
     g: "g",
     mg: "mg",
+    modeCalc: "Calculated",
+    modeLab: "Lab analysis",
+    labNoteInput: "Enter values per 100 g from your laboratory report.",
+    labNote: "Values per laboratory analysis. Label per Regulation (EU) 1169/2011.",
+    llKcal: "Energy (kcal)",
+    llFat: "Fat (g)",
+    llSatfat: "Saturates (g)",
+    llCarb: "Carbohydrate (g)",
+    llSugar: "Sugars (g)",
+    llFiber: "Fibre (g)",
+    llProt: "Protein (g)",
+    llSalt: "Salt (g)",
+    designTitleFont: "Title font",
+    tfSame: "Same as table",
+    tfScript: "Script ✍",
+    tfElegant: "Elegant",
+    tfBold: "Bold poster",
+    tfGaramond: "Garamond",
+    colorBordeaux: "🟥 Bordeaux",
+    colorPlum: "🟪 Plum",
+    colorTeal: "🌊 Teal",
+    colorOchre: "🟨 Ochre",
+    colorGraphite: "◼ Graphite",
+    colorChocolate: "🤎 Chocolate",
+    designFont: "Table font",
+    designBorder: "Border",
+    designColor: "Color",
+    fontNarrow: "Narrow (classic label)",
+    fontModern: "Modern",
+    fontClassic: "Classic (serif)",
+    borderThick: "■ Thick",
+    borderThin: "□ Thin",
+    borderNone: "— No border",
+    colorBlack: "⬛ Black",
+    colorGreen: "🟩 Dark green",
+    colorNavy: "🟦 Navy",
+    colorBrown: "🟫 Brown",
+    allergensTitle: "Allergens (EU 1169/2011)",
+    contains: "Contains",
+    per100: "Nutrition information per 100 g",
+    energy: "Energy",
+    fatEU: "Fat",
+    satFatEU: "of which saturates",
+    carbEU: "Carbohydrate",
+    sugarEU: "of which sugars",
+    fiberEU: "Fibre",
+    proteinEU: "Protein",
+    saltEU: "Salt",
+    batchInfo: "Batch",
+    labelSize: "Label size",
+    copies: "Number of labels",
+    btnPrintLabels: "🖨 Print labels",
+    goalLbl: "Improvement goal",
+    goalProtein: "↑ More protein",
+    goalSalt: "↓ Less salt",
+    goalFiber: "↑ More fibre",
+    goalKcal: "↓ Fewer calories",
+    goalOverall: "★ Overall improvement",
+    btnImprove: "🔧 Improve recipe",
+    improving: "AI is improving the recipe...",
+    euNote: "Values are calculated (USDA database). Laboratory analysis required for commercial use per Regulation (EU) 1169/2011.",
+    allergens: {gluten:"Gluten (cereals)", crust:"Crustaceans", eggs:"Eggs", fish:"Fish", peanuts:"Peanuts", soy:"Soybeans", milk:"Milk (incl. lactose)", nuts:"Tree nuts", celery:"Celery", mustard:"Mustard", sesame:"Sesame", sulph:"Sulphur dioxide/sulphites", lupin:"Lupin", moll:"Molluscs"},
     promptLang: "en",
     aiPrompt: (name, ings, serving, total, per) => `You are a food technologist. Analyze this recipe in ENGLISH.
 
@@ -536,6 +779,69 @@ Under 200 words. Specific and practical.`,
     noResults: "Результатов нет. Проверьте написание.",
     g: "г",
     mg: "мг",
+    modeCalc: "Расчётные",
+    modeLab: "Лабораторный анализ",
+    labNoteInput: "Введите значения на 100 г из лабораторного протокола.",
+    labNote: "Значения согласно лабораторному анализу. Этикетка по Регламенту (ЕС) 1169/2011.",
+    llKcal: "Энергия (ккал)",
+    llFat: "Жиры (г)",
+    llSatfat: "Насыщенные (г)",
+    llCarb: "Углеводы (г)",
+    llSugar: "Сахара (г)",
+    llFiber: "Клетчатка (г)",
+    llProt: "Белки (г)",
+    llSalt: "Соль (г)",
+    designTitleFont: "Шрифт заголовка",
+    tfSame: "Как таблица",
+
+    tfScript: "Рукописный ✍",
+    tfElegant: "Элегантный",
+    tfBold: "Плакатный",
+    tfGaramond: "Гарамонд",
+    colorBordeaux: "🟥 Бордо",
+    colorPlum: "🟪 Слива",
+    colorTeal: "🌊 Морской",
+    colorOchre: "🟨 Охра",
+    colorGraphite: "◼ Графит",
+    colorChocolate: "🤎 Шоколад",
+    designFont: "Шрифт таблицы",
+    designBorder: "Рамка",
+    designColor: "Цвет",
+    fontNarrow: "Узкий (классическая этикетка)",
+    fontModern: "Современный",
+    fontClassic: "Классический (с засечками)",
+    borderThick: "■ Толстая",
+    borderThin: "□ Тонкая",
+    borderNone: "— Без рамки",
+    colorBlack: "⬛ Чёрный",
+    colorGreen: "🟩 Тёмно-зелёный",
+    colorNavy: "🟦 Тёмно-синий",
+    colorBrown: "🟫 Коричневый",
+    allergensTitle: "Аллергены (ЕС 1169/2011)",
+    contains: "Содержит",
+    per100: "Пищевая ценность на 100 г",
+    energy: "Энергетическая ценность",
+    fatEU: "Жиры",
+    satFatEU: "из них насыщенные",
+    carbEU: "Углеводы",
+    sugarEU: "из них сахара",
+    fiberEU: "Клетчатка",
+    proteinEU: "Белки",
+    saltEU: "Соль",
+    batchInfo: "Партия",
+    labelSize: "Размер этикетки",
+    copies: "Количество этикеток",
+    btnPrintLabels: "🖨 Печать этикеток",
+    goalLbl: "Цель улучшения",
+    goalProtein: "↑ Больше белка",
+    goalSalt: "↓ Меньше соли",
+    goalFiber: "↑ Больше клетчатки",
+    goalKcal: "↓ Меньше калорий",
+    goalOverall: "★ Общее улучшение",
+    btnImprove: "🔧 Улучшить рецепт",
+    improving: "AI улучшает рецепт...",
+    euNote: "Значения расчётные (база USDA). Для коммерческого использования необходим лабораторный анализ согласно Регламенту (ЕС) 1169/2011.",
+    allergens: {gluten:"Глютен (злаки)", crust:"Ракообразные", eggs:"Яйца", fish:"Рыба", peanuts:"Арахис", soy:"Соя", milk:"Молоко (вкл. лактозу)", nuts:"Орехи", celery:"Сельдерей", mustard:"Горчица", sesame:"Кунжут", sulph:"Диоксид серы/сульфиты", lupin:"Люпин", moll:"Моллюски"},
     promptLang: "ru",
     aiPrompt: (name, ings, serving, total, per) => `Ты технолог пищевого производства. Проанализируй этот рецепт на РУССКОМ языке.
 
@@ -604,6 +910,69 @@ Under 200 words. Specific and practical.`,
     noResults: "Результатів немає. Перевірте написання.",
     g: "г",
     mg: "мг",
+    modeCalc: "Розрахункові",
+    modeLab: "Лабораторний аналіз",
+    labNoteInput: "Введіть значення на 100 г з лабораторного протоколу.",
+    labNote: "Значення згідно з лабораторним аналізом. Етикетка за Регламентом (ЄС) 1169/2011.",
+    llKcal: "Енергія (ккал)",
+    llFat: "Жири (г)",
+    llSatfat: "Насичені (г)",
+    llCarb: "Вуглеводи (г)",
+    llSugar: "Цукри (г)",
+    llFiber: "Клітковина (г)",
+    llProt: "Білки (г)",
+    llSalt: "Сіль (г)",
+    designTitleFont: "Шрифт заголовка",
+    tfSame: "Як таблиця",
+
+    tfScript: "Рукописний ✍",
+    tfElegant: "Елегантний",
+    tfBold: "Плакатний",
+    tfGaramond: "Гарамонд",
+    colorBordeaux: "🟥 Бордо",
+    colorPlum: "🟪 Слива",
+    colorTeal: "🌊 Морський",
+    colorOchre: "🟨 Охра",
+    colorGraphite: "◼ Графіт",
+    colorChocolate: "🤎 Шоколад",
+    designFont: "Шрифт таблиці",
+    designBorder: "Рамка",
+    designColor: "Колір",
+    fontNarrow: "Вузький (класична етикетка)",
+    fontModern: "Сучасний",
+    fontClassic: "Класичний (із засічками)",
+    borderThick: "■ Товста",
+    borderThin: "□ Тонка",
+    borderNone: "— Без рамки",
+    colorBlack: "⬛ Чорний",
+    colorGreen: "🟩 Темно-зелений",
+    colorNavy: "🟦 Темно-синій",
+    colorBrown: "🟫 Коричневий",
+    allergensTitle: "Алергени (ЄС 1169/2011)",
+    contains: "Містить",
+    per100: "Харчова цінність на 100 г",
+    energy: "Енергетична цінність",
+    fatEU: "Жири",
+    satFatEU: "з них насичені",
+    carbEU: "Вуглеводи",
+    sugarEU: "з них цукри",
+    fiberEU: "Клітковина",
+    proteinEU: "Білки",
+    saltEU: "Сіль",
+    batchInfo: "Партія",
+    labelSize: "Розмір етикетки",
+    copies: "Кількість етикеток",
+    btnPrintLabels: "🖨 Друк етикеток",
+    goalLbl: "Мета покращення",
+    goalProtein: "↑ Більше білка",
+    goalSalt: "↓ Менше солі",
+    goalFiber: "↑ Більше клітковини",
+    goalKcal: "↓ Менше калорій",
+    goalOverall: "★ Загальне покращення",
+    btnImprove: "🔧 Покращити рецепт",
+    improving: "AI покращує рецепт...",
+    euNote: "Значення розрахункові (база USDA). Для комерційного використання необхідний лабораторний аналіз згідно з Регламентом (ЄС) 1169/2011.",
+    allergens: {gluten:"Глютен (злаки)", crust:"Ракоподібні", eggs:"Яйця", fish:"Риба", peanuts:"Арахіс", soy:"Соя", milk:"Молоко (вкл. лактозу)", nuts:"Горіхи", celery:"Селера", mustard:"Гірчиця", sesame:"Кунжут", sulph:"Діоксид сірки/сульфіти", lupin:"Люпин", moll:"Молюски"},
     promptLang: "uk",
     aiPrompt: (name, ings, serving, total, per) => `Ти технолог харчового виробництва. Проаналізуй цей рецепт УКРАЇНСЬКОЮ мовою.
 
@@ -877,10 +1246,48 @@ function applyTranslations() {
   document.getElementById('lbl-pr-prot').textContent = t.protein.split(' ')[0];
   document.getElementById('lbl-pr-carb').textContent = t.carbs.split(' ')[0];
   document.getElementById('lbl-pr-fat').textContent = t.fat.split(' ')[0];
-  document.getElementById('el-cal-lbl').textContent = t.calories;
   document.getElementById('el-note').textContent = t.elNote;
   document.getElementById('btn-print').textContent = t.btnPrint;
   document.getElementById('btn-analyze').textContent = t.btnAnalyze;
+  document.getElementById('lbl-allergens').textContent = t.allergensTitle;
+  document.getElementById('lbl-label-size').textContent = t.labelSize;
+  document.getElementById('lbl-copies').textContent = t.copies;
+  document.getElementById('btn-print').textContent = t.btnPrintLabels;
+  document.getElementById('lbl-goal').textContent = t.goalLbl;
+  document.getElementById('btn-improve').textContent = t.btnImprove;
+  const gsel = document.getElementById('improve-goal');
+  gsel.options[0].text = t.goalProtein;
+  gsel.options[1].text = t.goalSalt;
+  gsel.options[2].text = t.goalFiber;
+  gsel.options[3].text = t.goalKcal;
+  gsel.options[4].text = t.goalOverall;
+  document.getElementById('lbl-font').textContent = t.designFont;
+  document.getElementById('lbl-border').textContent = t.designBorder;
+  document.getElementById('lbl-color').textContent = t.designColor;
+  const fsel = document.getElementById('label-font');
+  fsel.options[0].text = t.fontNarrow; fsel.options[1].text = t.fontModern; fsel.options[2].text = t.fontClassic;
+  const bsel = document.getElementById('label-border');
+  bsel.options[0].text = t.borderThick; bsel.options[1].text = t.borderThin; bsel.options[2].text = t.borderNone;
+  const csel = document.getElementById('label-color');
+  csel.options[0].text = t.colorBlack; csel.options[1].text = t.colorGreen; csel.options[2].text = t.colorNavy; csel.options[3].text = t.colorBrown;
+  csel.options[4].text = t.colorBordeaux; csel.options[5].text = t.colorPlum; csel.options[6].text = t.colorTeal;
+  csel.options[7].text = t.colorOchre; csel.options[8].text = t.colorGraphite; csel.options[9].text = t.colorChocolate;
+  document.getElementById('lbl-title-font').textContent = t.designTitleFont;
+  document.getElementById('mode-calc').textContent = t.modeCalc;
+  document.getElementById('mode-lab').textContent = t.modeLab;
+  document.getElementById('lab-note').textContent = t.labNoteInput;
+  document.getElementById('ll-kcal').textContent = t.llKcal;
+  document.getElementById('ll-fat').textContent = t.llFat;
+  document.getElementById('ll-satfat').textContent = t.llSatfat;
+  document.getElementById('ll-carb').textContent = t.llCarb;
+  document.getElementById('ll-sugar').textContent = t.llSugar;
+  document.getElementById('ll-fiber').textContent = t.llFiber;
+  document.getElementById('ll-prot').textContent = t.llProt;
+  document.getElementById('ll-salt').textContent = t.llSalt;
+  const tfsel = document.getElementById('label-title-font');
+  tfsel.options[0].text = t.tfSame; tfsel.options[1].text = t.tfScript; tfsel.options[2].text = t.tfElegant;
+  tfsel.options[3].text = t.tfBold; tfsel.options[4].text = t.tfGaramond;
+  renderAllergens();
 }
 
 // ─── INGREDIENT SEARCH ───────────────────────────────────────────────────────
@@ -1162,21 +1569,52 @@ function updateResults() {
 
 function updateLabel(r) {
   const t = T[currentLang];
-  const p = r.per;
+  let p, kJ, salt, satfatDisplay;
+  if (labelMode === 'lab') {
+    const L = getLabValues();
+    p = {
+      cal: isNaN(L.cal) ? 0 : L.cal,
+      fat: isNaN(L.fat) ? 0 : L.fat,
+      carb: isNaN(L.carb) ? 0 : L.carb,
+      sugar: isNaN(L.sugar) ? 0 : L.sugar,
+      fiber: isNaN(L.fiber) ? 0 : L.fiber,
+      prot: isNaN(L.prot) ? 0 : L.prot
+    };
+    kJ = Math.round(p.cal * 4.184);
+    salt = isNaN(L.salt) ? 0 : L.salt;
+    satfatDisplay = isNaN(L.satfat) ? '—' : L.satfat.toFixed(1) + ' ' + t.g;
+  } else {
+    // EU 1169/2011: values per 100 g of product (calculated from DB)
+    const f = 100 / r.serving;
+    p = {};
+    Object.keys(r.per).forEach(k => p[k] = r.per[k] * f);
+    kJ = Math.round(p.cal * 4.184);
+    salt = p.sodium * 2.5 / 1000;
+    satfatDisplay = '—';
+  }
   const name = document.getElementById('product-name').value || 'Product';
   document.getElementById('el-name').textContent = name;
-  document.getElementById('el-serv').textContent = `${t.perServing}: ${r.serving}${t.g} | ${Math.round(r.totalWeight/r.serving)}x`;
-  document.getElementById('el-cal').textContent = Math.round(p.cal);
-  const dv = {fat:78, carb:275, fiber:28, prot:50, sodium:2300};
+  document.getElementById('el-batch').textContent = `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g}`;
+  document.getElementById('el-per100').textContent = t.per100;
   document.getElementById('el-rows').innerHTML = `
-    <div class="el-row bold"><span>${t.totalFat}</span><span>${p.fat.toFixed(1)}${t.g} ${Math.round(p.fat/dv.fat*100)}%*</span></div>
-    <div class="el-row sub"><span>${t.satFat}</span><span>—</span></div>
-    <div class="el-row bold"><span>${t.totalCarb}</span><span>${p.carb.toFixed(1)}${t.g} ${Math.round(p.carb/dv.carb*100)}%*</span></div>
-    <div class="el-row sub"><span>${t.dietFiber}</span><span>${p.fiber.toFixed(1)}${t.g} ${Math.round(p.fiber/dv.fiber*100)}%*</span></div>
-    <div class="el-row sub"><span>${t.sugars}</span><span>${p.sugar.toFixed(1)}${t.g}</span></div>
-    <div class="el-row bold"><span>${t.proteins}</span><span>${p.prot.toFixed(1)}${t.g} ${Math.round(p.prot/dv.prot*100)}%*</span></div>
-    <div class="el-row"><span>${t.sodium}</span><span>${Math.round(p.sodium)}${t.mg} ${Math.round(p.sodium/dv.sodium*100)}%*</span></div>
+    <div class="el-row bold"><span>${t.energy}</span><span>${kJ} kJ / ${Math.round(p.cal)} kcal</span></div>
+    <div class="el-row bold"><span>${t.fatEU}</span><span>${p.fat.toFixed(1)} ${t.g}</span></div>
+    <div class="el-row sub"><span>${t.satFatEU}</span><span>${satfatDisplay}</span></div>
+    <div class="el-row bold"><span>${t.carbEU}</span><span>${p.carb.toFixed(1)} ${t.g}</span></div>
+    <div class="el-row sub"><span>${t.sugarEU}</span><span>${p.sugar.toFixed(1)} ${t.g}</span></div>
+    <div class="el-row"><span>${t.fiberEU}</span><span>${p.fiber.toFixed(1)} ${t.g}</span></div>
+    <div class="el-row bold"><span>${t.proteinEU}</span><span>${p.prot.toFixed(1)} ${t.g}</span></div>
+    <div class="el-row bold"><span>${t.saltEU}</span><span>${salt.toFixed(2)} ${t.g}</span></div>
   `;
+  const allergenEl = document.getElementById('el-allergens');
+  if (selectedAllergens.length > 0) {
+    const names = selectedAllergens.map(k => `<b>${t.allergens[k]}</b>`).join(', ');
+    allergenEl.innerHTML = `${t.contains}: ${names}`;
+    allergenEl.style.display = 'block';
+  } else {
+    allergenEl.style.display = 'none';
+  }
+  document.getElementById('el-note').textContent = labelMode === 'lab' ? t.labNote : t.euNote;
 }
 
 function onDataChange() { updateResults(); }
@@ -1190,23 +1628,6 @@ function showTab(name) {
 }
 
 // ─── PRINT ────────────────────────────────────────────────────────────────────
-function printLabel() {
-  const html = document.getElementById('eu-label').outerHTML;
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Label</title><style>
-    body{font-family:'Arial Narrow',Arial,sans-serif;padding:20px}
-    .eu-label{max-width:290px;border:2px solid #111;border-radius:3px;padding:12px}
-    .el-title{font-size:26px;font-weight:900;border-bottom:8px solid #111;padding-bottom:3px;margin-bottom:3px;line-height:1.1}
-    .el-serv{font-size:11px;margin-bottom:8px}
-    .el-cal-row{display:flex;justify-content:space-between;align-items:baseline;border-bottom:4px solid #111;padding-bottom:5px;margin-bottom:5px}
-    .el-cal-lbl{font-size:13px;font-weight:700}.el-cal-num{font-size:34px;font-weight:900;line-height:1}
-    .el-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;border-bottom:0.5px solid #aaa}
-    .el-row.bold{font-weight:700}.el-row.sub{padding-left:14px}
-    .el-note{font-size:8.5px;color:#555;margin-top:7px;border-top:0.5px solid #aaa;padding-top:5px}
-  </style></head><body>${html}<script>window.print();<\/script></body></html>`);
-  w.document.close();
-}
-
 // ─── AI ANALYSIS ──────────────────────────────────────────────────────────────
 async function analyzeWithAI() {
   const t = T[currentLang];
@@ -1244,6 +1665,193 @@ async function analyzeWithAI() {
   btn.textContent = t.btnAnalyze;
 }
 
+
+// ─── ALLERGENS (EU 1169/2011 Annex II) ───────────────────────────────────────
+const ALLERGEN_KEYS = ['gluten','crust','eggs','fish','peanuts','soy','milk','nuts','celery','mustard','sesame','sulph','lupin','moll'];
+let selectedAllergens = [];
+
+function renderAllergens() {
+  const t = T[currentLang];
+  const grid = document.getElementById('allergen-grid');
+  grid.innerHTML = '';
+  ALLERGEN_KEYS.forEach(key => {
+    const div = document.createElement('label');
+    div.className = 'allergen-chip' + (selectedAllergens.includes(key) ? ' on' : '');
+    div.innerHTML = `<input type="checkbox" ${selectedAllergens.includes(key)?'checked':''}><span>${t.allergens[key]}</span>`;
+    div.querySelector('input').addEventListener('change', e => {
+      if (e.target.checked) selectedAllergens.push(key);
+      else selectedAllergens = selectedAllergens.filter(k => k !== key);
+      document.getElementById('lbl-font').textContent = t.designFont;
+  document.getElementById('lbl-border').textContent = t.designBorder;
+  document.getElementById('lbl-color').textContent = t.designColor;
+  const fsel = document.getElementById('label-font');
+  fsel.options[0].text = t.fontNarrow; fsel.options[1].text = t.fontModern; fsel.options[2].text = t.fontClassic;
+  const bsel = document.getElementById('label-border');
+  bsel.options[0].text = t.borderThick; bsel.options[1].text = t.borderThin; bsel.options[2].text = t.borderNone;
+  const csel = document.getElementById('label-color');
+  csel.options[0].text = t.colorBlack; csel.options[1].text = t.colorGreen; csel.options[2].text = t.colorNavy; csel.options[3].text = t.colorBrown;
+  csel.options[4].text = t.colorBordeaux; csel.options[5].text = t.colorPlum; csel.options[6].text = t.colorTeal;
+  csel.options[7].text = t.colorOchre; csel.options[8].text = t.colorGraphite; csel.options[9].text = t.colorChocolate;
+  document.getElementById('lbl-title-font').textContent = t.designTitleFont;
+  document.getElementById('mode-calc').textContent = t.modeCalc;
+  document.getElementById('mode-lab').textContent = t.modeLab;
+  document.getElementById('lab-note').textContent = t.labNoteInput;
+  document.getElementById('ll-kcal').textContent = t.llKcal;
+  document.getElementById('ll-fat').textContent = t.llFat;
+  document.getElementById('ll-satfat').textContent = t.llSatfat;
+  document.getElementById('ll-carb').textContent = t.llCarb;
+  document.getElementById('ll-sugar').textContent = t.llSugar;
+  document.getElementById('ll-fiber').textContent = t.llFiber;
+  document.getElementById('ll-prot').textContent = t.llProt;
+  document.getElementById('ll-salt').textContent = t.llSalt;
+  const tfsel = document.getElementById('label-title-font');
+  tfsel.options[0].text = t.tfSame; tfsel.options[1].text = t.tfScript; tfsel.options[2].text = t.tfElegant;
+  tfsel.options[3].text = t.tfBold; tfsel.options[4].text = t.tfGaramond;
+  renderAllergens();
+      updateResults();
+    });
+    grid.appendChild(div);
+  });
+}
+
+
+// ─── LABEL DATA MODE (calculated vs lab analysis) ────────────────────────────
+let labelMode = 'calc';
+function setLabelMode(mode) {
+  labelMode = mode;
+  document.getElementById('mode-calc').classList.toggle('on', mode === 'calc');
+  document.getElementById('mode-lab').classList.toggle('on', mode === 'lab');
+  document.getElementById('lab-inputs').style.display = mode === 'lab' ? 'block' : 'none';
+  updateResults();
+}
+function getLabValues() {
+  const v = id => parseFloat(document.getElementById(id).value);
+  return {
+    cal: v('lab-kcal'), fat: v('lab-fat'), satfat: v('lab-satfat'),
+    carb: v('lab-carb'), sugar: v('lab-sugar'), fiber: v('lab-fiber'),
+    prot: v('lab-prot'), salt: v('lab-salt')
+  };
+}
+
+// ─── LABEL DESIGN ────────────────────────────────────────────────────────────
+const LABEL_FONTS = {
+  narrow: "'Arial Narrow', Arial, sans-serif",
+  modern: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif",
+  classic: "Georgia, 'Times New Roman', serif"
+};
+const TITLE_FONTS = {
+  same: null,
+  script: "'Caveat', cursive",
+  elegant: "'Playfair Display', Georgia, serif",
+  bold: "'Oswald', Arial, sans-serif",
+  garamond: "'Cormorant Garamond', Georgia, serif"
+};
+function getLabelDesign() {
+  const tf = document.getElementById('label-title-font').value;
+  return {
+    font: LABEL_FONTS[document.getElementById('label-font').value],
+    titleFont: TITLE_FONTS[tf],
+    titleScale: tf === 'script' ? 1.25 : 1,
+    border: document.getElementById('label-border').value,
+    color: document.getElementById('label-color').value
+  };
+}
+function applyLabelDesign() {
+  const d = getLabelDesign();
+  const el = document.getElementById('eu-label');
+  el.style.fontFamily = d.font;
+  el.style.color = d.color;
+  el.style.border = d.border === 'thick' ? `2px solid ${d.color}` : d.border === 'thin' ? `1px solid ${d.color}` : 'none';
+  el.querySelectorAll('.el-title, [id=el-per100]').forEach(e => {
+    e.style.borderBottomColor = d.color;
+  });
+  const title = el.querySelector('.el-title');
+  title.style.fontFamily = d.titleFont || '';
+  title.style.fontSize = d.titleFont ? `${26 * d.titleScale}px` : '';
+}
+
+// ─── PRINT SHEET ─────────────────────────────────────────────────────────────
+const LABEL_SIZES = { S: {w:55, h:70, font:7.2}, M: {w:70, h:95, font:9}, L: {w:95, h:130, font:11.5} };
+
+function printLabels() {
+  const d = getLabelDesign();
+  const size = LABEL_SIZES[document.getElementById('label-size').value];
+  const copies = Math.min(parseInt(document.getElementById('label-copies').value) || 1, 30);
+  const labelHTML = document.getElementById('eu-label').outerHTML;
+  let labels = '';
+  for (let i = 0; i < copies; i++) labels += `<div class="lbl-item">${labelHTML}</div>`;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>NutriForm Labels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Playfair+Display:wght@800&family=Oswald:wght@600&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet"><style>
+    @page { size: A4; margin: 8mm; }
+    body { font-family: ${d.font}; color: ${d.color}; margin: 0; display: flex; flex-wrap: wrap; gap: 4mm; align-content: flex-start; }
+    .lbl-item { width: ${size.w}mm; height: ${size.h}mm; overflow: hidden; page-break-inside: avoid; }
+    .eu-label { width: 100%; height: 100%; box-sizing: border-box; border: ${d.border==='thick'?'1.5px':d.border==='thin'?'0.5px':'0'} solid ${d.color}; border-radius: 2px; padding: 2.5mm; font-size: ${size.font}px; }
+    .el-title { font-family: ${d.titleFont || d.font}; font-size: ${size.font*1.9*d.titleScale}px; font-weight: 900; border-bottom: ${size.font*0.5}px solid ${d.color}; padding-bottom: 1mm; margin-bottom: 1mm; line-height: 1.05; }
+    .el-serv { font-size: ${size.font*0.85}px; margin-bottom: 1mm; }
+    .el-rows-hdr, [id=el-per100] { font-size: ${size.font*0.9}px !important; font-weight: 700; border-bottom: 2px solid ${d.color} !important; padding-bottom: 0.5mm; margin-bottom: 0.5mm; }
+    .el-row { display: flex; justify-content: space-between; font-size: ${size.font*0.92}px; padding: 0.3mm 0; border-bottom: 0.3px solid #999; }
+    .el-row.bold { font-weight: 700; }
+    .el-row.sub { padding-left: 3mm; }
+    .el-allergens { font-size: ${size.font*0.85}px; margin-top: 1mm; padding-top: 0.5mm; border-top: 0.5px solid #999; }
+    .el-allergens b { font-weight: 800; }
+    .el-note { font-size: ${size.font*0.62}px; color: #555; margin-top: 1mm; border-top: 0.3px solid #999; padding-top: 0.5mm; }
+  </style></head><body>${labels}<scr`+`ipt>window.print();</scr`+`ipt></body></html>`);
+  w.document.close();
+}
+
+// ─── IMPROVE RECIPE ──────────────────────────────────────────────────────────
+async function improveRecipe() {
+  const t = T[currentLang];
+  const r = calcNutrition();
+  if (!r || !ingredients.length) return;
+  const btn = document.getElementById('btn-improve');
+  btn.disabled = true;
+  const output = document.getElementById('ai-output');
+  output.innerHTML = `<div class="loading-row"><div class="search-spinner"></div>${t.improving}</div>`;
+  const goal = document.getElementById('improve-goal').value;
+  const goalText = {
+    protein: {bg:'повече белтък', en:'more protein', ru:'больше белка', uk:'більше білка'},
+    salt: {bg:'по-малко сол/натрий', en:'less salt/sodium', ru:'меньше соли/натрия', uk:'менше солі/натрію'},
+    fiber: {bg:'повече хранителни влакнини', en:'more dietary fibre', ru:'больше клетчатки', uk:'більше клітковини'},
+    kcal: {bg:'по-малко калории', en:'fewer calories', ru:'меньше калорий', uk:'менше калорій'},
+    overall: {bg:'цялостно по-добър хранителен профил', en:'overall better nutrition profile', ru:'улучшение общего профиля', uk:'покращення загального профілю'}
+  }[goal][currentLang];
+  const ingList = ingredients.map(i => `${i.name} (${i.amount}${t.g})`).join(', ');
+  const name = document.getElementById('product-name').value || '—';
+  const langName = {bg:'БЪЛГАРСКИ', en:'ENGLISH', ru:'РУССКИЙ', uk:'УКРАЇНСЬКА'}[currentLang];
+  const prompt = `You are a food technologist. Respond in ${langName} only.
+
+Product: ${name}
+Current recipe: ${ingList}
+Total batch: ${r.totalWeight.toFixed(0)}g
+Current nutrition per 100g: ${Math.round(r.per.cal*100/r.serving)} kcal, protein ${(r.per.prot*100/r.serving).toFixed(1)}g, carbs ${(r.per.carb*100/r.serving).toFixed(1)}g, fat ${(r.per.fat*100/r.serving).toFixed(1)}g, fiber ${(r.per.fiber*100/r.serving).toFixed(1)}g, sodium ${Math.round(r.per.sodium*100/r.serving)}mg
+
+GOAL: ${goalText}
+
+Provide an IMPROVED version of this recipe:
+1. Full new ingredient list WITH EXACT GRAM AMOUNTS (modify amounts, substitute or add ingredients as needed)
+2. Brief explanation of each change (1 line per change)
+3. Expected nutritional impact
+4. Keep the product technologically feasible (baking/food science constraints apply)
+
+Under 250 words. Practical, specific grams.`;
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({max_tokens:1200, messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(typeof data.error === 'string' ? data.error : data.error.message);
+    const text = data.content.map(b=>b.text||'').join('');
+    const fmt = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    output.innerHTML = `<div class="ai-result">${fmt}</div>`;
+  } catch(e) {
+    output.innerHTML = `<div class="err-box">${t.aiError}: ${e.message}</div>`;
+  }
+  btn.disabled = false;
+}
 // Close suggestions on outside click
 document.addEventListener('click', e => {
   if (!e.target.closest('.ing-search-wrap') && !e.target.closest('#suggestions')) hideSuggestions();
