@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bg">
 <head>
@@ -32,7 +31,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.5; }
-
+ 
 /* LANG SCREEN */
 #lang-screen {
   position: fixed; inset: 0; background: var(--bg);
@@ -52,7 +51,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .lang-btn .flag { font-size: 26px; display: block; margin-bottom: 4px; }
 .lang-btn .lang-name { font-size: 15px; font-weight: 600; color: var(--text); }
 .lang-btn .lang-native { font-size: 12px; color: var(--text3); }
-
+ 
 /* APP */
 #app { display: none; }
 .topbar {
@@ -65,19 +64,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .lang-switch { font-size: 12px; color: var(--text3); cursor: pointer; padding: 4px 8px; border-radius: var(--rsm); border: 1px solid var(--border); background: transparent; }
 .lang-switch:hover { background: var(--surface2); }
-
+ 
 .layout {
   max-width: 1140px; margin: 0 auto; padding: 1.5rem 2rem;
   display: grid; grid-template-columns: 1fr 400px; gap: 1.5rem; align-items: start;
 }
 @media (max-width: 820px) { .layout { grid-template-columns: 1fr; padding: 1rem; } }
-
+ 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.25rem; }
 .card:last-child { margin-bottom: 0; }
 .card-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: var(--surface); }
 .card-header h2 { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.01em; }
 .card-body { padding: 1.25rem; }
-
+ 
 label { font-size: 11px; font-weight: 600; color: var(--text2); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
 input[type=text], input[type=number], input[type=password], select {
   width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--rsm);
@@ -88,7 +87,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .field { margin-bottom: 1rem; }
 .row { display: flex; gap: 10px; }
 .row .field { flex: 1; }
-
+ 
 /* INGREDIENT SEARCH */
 .ing-search-wrap { position: relative; }
 .ing-search-wrap input { padding-right: 80px; }
@@ -98,7 +97,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 }
 .search-spinner { width: 12px; height: 12px; border: 1.5px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
 .suggestions-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -117,7 +116,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .src-ai { background: var(--green-bg); color: var(--green); }
 .src-local { background: var(--surface2); color: var(--text2); }
 .no-results { padding: 14px; font-size: 13px; color: var(--text3); text-align: center; }
-
+ 
 /* TABLE */
 .ing-table { width: 100%; border-collapse: collapse; }
 .ing-table th { font-size: 10px; color: var(--text3); font-weight: 600; text-align: left; padding: 4px 8px 8px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -132,20 +131,20 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .del-btn { width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--text3); font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
 .del-btn:hover { background: var(--red-bg); color: var(--red); border-color: #f0b0aa; }
 .total-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); padding: 8px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
-
+ 
 .btn { padding: 8px 14px; border-radius: var(--rsm); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text); transition: all 0.12s; font-family: inherit; }
 .btn:hover { background: var(--bg); border-color: var(--border2); }
 .btn-green { background: var(--green); color: #fff; border-color: var(--green); width: 100%; padding: 10px; font-size: 14px; }
 .btn-green:hover { background: #235236; }
 .btn-green:disabled { background: var(--border2); border-color: var(--border2); cursor: not-allowed; }
-
+ 
 /* TABS */
 .tabs { display: flex; border-bottom: 1px solid var(--border); }
 .tab-btn { padding: 11px 16px; font-size: 13px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; font-family: inherit; }
 .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
 .tab-pane { display: none; padding: 1.25rem; }
 .tab-pane.active { display: block; }
-
+ 
 /* MACROS */
 .macro-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1rem; }
 .macro-cell { background: var(--bg); border-radius: var(--rsm); padding: 12px 6px; text-align: center; }
@@ -160,7 +159,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .prog-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
 .prog-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .prog-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
-
+ 
 /* EU LABEL */
 .eu-label { max-width: 290px; border: 2px solid #111; border-radius: 3px; padding: 12px; font-family: 'Arial Narrow', Arial, sans-serif; }
 .eu-label .el-title { font-size: 26px; font-weight: 900; border-bottom: 8px solid #111; padding-bottom: 3px; margin-bottom: 3px; line-height: 1.1; }
@@ -172,7 +171,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .eu-label .el-row.bold { font-weight: 700; }
 .eu-label .el-row.sub { padding-left: 14px; }
 .eu-label .el-note { font-size: 8.5px; color: #555; margin-top: 7px; border-top: 0.5px solid #aaa; padding-top: 5px; }
-
+ 
 /* AI */
 .api-notice { background: var(--amber-bg); border: 1px solid #e8cc70; border-radius: var(--rsm); padding: 10px 12px; font-size: 12px; color: var(--amber); margin-bottom: 1rem; }
 .api-notice strong { display: block; margin-bottom: 2px; font-size: 13px; }
@@ -184,7 +183,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .score-lo { background: var(--red-bg); color: var(--red); }
 .loading-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text3); padding: 12px 0; }
 .err-box { padding: 10px 12px; background: var(--red-bg); color: var(--red); border-radius: var(--rsm); font-size: 13px; margin-top: 10px; }
-
+ 
 /* ALLERGENS */
 .allergen-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
 .allergen-chip { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: var(--rsm); border: 1px solid var(--border); cursor: pointer; font-size: 12.5px; transition: all 0.12s; background: var(--bg); }
@@ -199,7 +198,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .btn-amber:hover { background: #74591a; }
 .el-allergens { font-size: 11px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #aaa; }
 .el-allergens b { font-weight: 800; }
-
+ 
 /* LAB MODE */
 .mode-toggle { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--rsm); overflow: hidden; }
 .mode-btn { flex: 1; padding: 9px; font-size: 13px; font-weight: 500; border: none; background: var(--bg); cursor: pointer; color: var(--text2); font-family: inherit; transition: all 0.15s; }
@@ -211,7 +210,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 </style>
 </head>
 <body>
-
+ 
 <!-- LANGUAGE SELECTION SCREEN -->
 <div id="lang-screen">
   <div>
@@ -241,7 +240,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
     </button>
   </div>
 </div>
-
+ 
 <!-- MAIN APP -->
 <div id="app">
   <div class="topbar">
@@ -251,10 +250,15 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
       <button class="lang-switch" onclick="switchLang()" id="lang-switch-btn">🌐 Language</button>
     </div>
   </div>
-
+ 
   <div class="layout">
     <!-- LEFT -->
     <div>
+      <div class="mode-toggle" style="margin-bottom:1.25rem">
+        <button class="mode-btn on" id="ptype-human" onclick="setProductType('human')">🍞 Human food</button>
+        <button class="mode-btn" id="ptype-feed" onclick="setProductType('feed')">🐕 Pet feed</button>
+      </div>
+ 
       <div class="card">
         <div class="card-header"><span>📋</span><h2 id="lbl-product-info">Product Info</h2></div>
         <div class="card-body">
@@ -270,7 +274,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
           </div>
         </div>
       </div>
-
+ 
       <div class="card">
         <div class="card-header"><span>🧪</span><h2 id="lbl-ingredients">Ingredients</h2></div>
         <div class="card-body">
@@ -285,7 +289,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
             </thead>
             <tbody id="ing-tbody"></tbody>
           </table>
-
+ 
           <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
             <div class="row" style="align-items:flex-end; gap:8px;">
               <div class="field" style="flex:2; margin-bottom:0; position:relative">
@@ -311,7 +315,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
           </div>
         </div>
       </div>
-
+ 
       <div class="card">
         <div class="card-header"><span>⚠️</span><h2 id="lbl-allergens">Allergens (EU 1169/2011)</h2></div>
         <div class="card-body">
@@ -319,7 +323,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
         </div>
       </div>
     </div>
-
+ 
     <!-- RIGHT -->
     <div class="card">
       <div class="tabs">
@@ -327,7 +331,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
         <button class="tab-btn" onclick="showTab('label')" id="tab-btn-label">Label</button>
         <button class="tab-btn" onclick="showTab('ai')" id="tab-btn-ai">AI Analysis</button>
       </div>
-
+ 
       <!-- NUTRITION -->
       <div class="tab-pane active" id="pane-nutrition">
         <div class="macro-grid">
@@ -354,12 +358,34 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
           </div>
         </div>
       </div>
-
+ 
       <!-- LABEL -->
       <div class="tab-pane" id="pane-label">
         <div class="mode-toggle">
           <button class="mode-btn on" id="mode-calc" onclick="setLabelMode('calc')">Calculated</button>
           <button class="mode-btn" id="mode-lab" onclick="setLabelMode('lab')">Lab analysis</button>
+        </div>
+        <div id="feed-inputs" style="display:none">
+          <div class="lab-note" id="feed-note">Enter analytical constituents from your lab report (BFSA/БАБХ).</div>
+          <div class="lab-grid">
+            <div class="field"><label id="fl-protein">Crude protein (%)</label><input type="number" id="feed-protein" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="fl-fat">Crude fats (%)</label><input type="number" id="feed-fat" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="fl-fibre">Crude fibre (%)</label><input type="number" id="feed-fibre" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="fl-ash">Crude ash (%)</label><input type="number" id="feed-ash" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="fl-moisture">Moisture (%)</label><input type="number" id="feed-moisture" step="0.1" min="0" oninput="updateResults()"></div>
+            <div class="field"><label id="fl-species">Species</label>
+              <select id="feed-species" onchange="updateResults()">
+                <option value="dog">Dog</option>
+                <option value="cat">Cat</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label id="fl-additives">Additives (vitamins, trace elements) — optional</label>
+            <input type="text" id="feed-additives" oninput="updateResults()" placeholder="Vitamin A 12000 IU/kg; Vitamin D3 1200 IU/kg; Zinc 95 mg/kg">
+          </div>
+          <div class="field"><label id="fl-composition">Composition (ingredients, descending order)</label>
+            <input type="text" id="feed-composition" oninput="updateResults()" placeholder="Chicken meat (40%), rice, carrots, fish oil...">
+          </div>
         </div>
         <div id="lab-inputs" style="display:none">
           <div class="lab-note" id="lab-note">Enter values per 100 g from your laboratory report.</div>
@@ -441,7 +467,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
         </div>
         <button class="btn btn-green" onclick="printLabels()" style="margin-top:12px" id="btn-print">🖨 Print labels</button>
       </div>
-
+ 
       <!-- AI -->
       <div class="tab-pane" id="pane-ai">
         <button class="btn btn-green" onclick="analyzeWithAI()" id="btn-analyze">✨ Analyze with AI</button>
@@ -463,7 +489,7 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
     </div>
   </div>
 </div>
-
+ 
 <script>
 // ─── TRANSLATIONS ────────────────────────────────────────────────────────────
 const T = {
@@ -519,6 +545,25 @@ const T = {
     noResults: "Няма резултати. Провери правописа.",
     g: "г",
     mg: "мг",
+    ptypeHuman: "🍞 Храни за хора",
+    ptypeFeed: "🐕 Храни за животни",
+    feedNoteInput: "Въведи аналитичните съставки от протокола на БАБХ (на 100 г, в %).",
+    feedAnalytical: "Аналитични съставки",
+    feedProtein: "Суров протеин",
+    feedFat: "Сурови мазнини",
+    feedFibre: "Сурова влакнина",
+    feedAsh: "Сурова пепел",
+    feedMoisture: "Влага",
+    feedSpecies: "Вид животно",
+    feedDog: "кучета",
+    feedCat: "котки",
+    feedComplete: "Пълноценна храна",
+    feedAdditivesLbl: "Добавки",
+    feedAdditivesInput: "Добавки (витамини, микроелементи) — по избор",
+    feedCompositionLbl: "Състав",
+    feedCompositionInput: "Състав (съставки в низходящ ред)",
+    feedNote: "Етикет съгласно Регламент (ЕС) 767/2009 за пускане на пазара на фуражи. Стойности по лабораторен анализ.",
+    feedImproveBlocked: "⚠️ Автоматично подобрение не се предлага за пълноценни храни за животни: промени в рецептурата трябва да се валидират от ветеринарен специалист по хранене (FEDIAF профили — калций/фосфор, аминокиселини, витамини). Използвай AI анализа за оценка на текущия профил.",
     modeCalc: "Изчислени",
     modeLab: "Лабораторен анализ",
     labNoteInput: "Въведи стойностите на 100 г от лабораторния протокол.",
@@ -583,18 +628,18 @@ const T = {
     allergens: {gluten:"Глутен (зърнени)", crust:"Ракообразни", eggs:"Яйца", fish:"Риба", peanuts:"Фъстъци", soy:"Соя", milk:"Мляко (вкл. лактоза)", nuts:"Ядки", celery:"Целина", mustard:"Горчица", sesame:"Сусам", sulph:"Серен диоксид/сулфити", lupin:"Лупина", moll:"Мекотели"},
     promptLang: "bg",
     aiPrompt: (name, ings, serving, total, per) => `Ти си хранителен технолог. Анализирай тази рецепта на БЪЛГАРСКИ.
-
+ 
 Продукт: ${name}
 Съставки: ${ings}
 Порция: ${serving}г | Общо тегло: ${total}г
 Хранителни стойности на порция: ${Math.round(per.cal)} ккал, белтък ${per.prot.toFixed(1)}г, въглехидрати ${per.carb.toFixed(1)}г, мазнини ${per.fat.toFixed(1)}г, фибри ${per.fiber.toFixed(1)}г, натрий ${Math.round(per.sodium)}мг
-
+ 
 Отговори структурирано:
 1. Хранителни предимства (2-3 точки)
 2. Препоръки за подобряване
 3. Бележка за ЕС етикетиране (Регламент 1169/2011)
 4. Оценка X/10 с кратко обяснение
-
+ 
 До 200 думи. Конкретно и практично.`,
   },
   en: {
@@ -649,6 +694,25 @@ const T = {
     noResults: "No results. Check spelling or try English.",
     g: "g",
     mg: "mg",
+    ptypeHuman: "🍞 Human food",
+    ptypeFeed: "🐕 Pet feed",
+    feedNoteInput: "Enter analytical constituents from your lab report (per 100 g, in %).",
+    feedAnalytical: "Analytical constituents",
+    feedProtein: "Crude protein",
+    feedFat: "Crude fats",
+    feedFibre: "Crude fibre",
+    feedAsh: "Crude ash",
+    feedMoisture: "Moisture",
+    feedSpecies: "Species",
+    feedDog: "dogs",
+    feedCat: "cats",
+    feedComplete: "Complete feed",
+    feedAdditivesLbl: "Additives",
+    feedAdditivesInput: "Additives (vitamins, trace elements) — optional",
+    feedCompositionLbl: "Composition",
+    feedCompositionInput: "Composition (ingredients, descending order)",
+    feedNote: "Label per Regulation (EU) 767/2009 on the placing on the market of feed. Values per laboratory analysis.",
+    feedImproveBlocked: "⚠️ Automatic improvement is not offered for complete pet feed: formulation changes must be validated by a veterinary nutrition specialist (FEDIAF profiles — calcium/phosphorus, amino acids, vitamins). Use AI analysis to assess the current profile.",
     modeCalc: "Calculated",
     modeLab: "Lab analysis",
     labNoteInput: "Enter values per 100 g from your laboratory report.",
@@ -713,18 +777,18 @@ const T = {
     allergens: {gluten:"Gluten (cereals)", crust:"Crustaceans", eggs:"Eggs", fish:"Fish", peanuts:"Peanuts", soy:"Soybeans", milk:"Milk (incl. lactose)", nuts:"Tree nuts", celery:"Celery", mustard:"Mustard", sesame:"Sesame", sulph:"Sulphur dioxide/sulphites", lupin:"Lupin", moll:"Molluscs"},
     promptLang: "en",
     aiPrompt: (name, ings, serving, total, per) => `You are a food technologist. Analyze this recipe in ENGLISH.
-
+ 
 Product: ${name}
 Ingredients: ${ings}
 Serving: ${serving}g | Total batch: ${total}g
 Nutrition per serving: ${Math.round(per.cal)} kcal, protein ${per.prot.toFixed(1)}g, carbs ${per.carb.toFixed(1)}g, fat ${per.fat.toFixed(1)}g, fiber ${per.fiber.toFixed(1)}g, sodium ${Math.round(per.sodium)}mg
-
+ 
 Reply with structured analysis:
 1. Nutritional strengths (2-3 points)
 2. Improvement recommendations
 3. EU labeling note (Regulation 1169/2011)
 4. Score X/10 with brief reasoning
-
+ 
 Under 200 words. Specific and practical.`,
   },
   ru: {
@@ -779,6 +843,25 @@ Under 200 words. Specific and practical.`,
     noResults: "Результатов нет. Проверьте написание.",
     g: "г",
     mg: "мг",
+    ptypeHuman: "🍞 Продукты для людей",
+    ptypeFeed: "🐕 Корма для животных",
+    feedNoteInput: "Введите аналитические составляющие из лабораторного протокола (на 100 г, в %).",
+    feedAnalytical: "Аналитические составляющие",
+    feedProtein: "Сырой протеин",
+    feedFat: "Сырые жиры",
+    feedFibre: "Сырая клетчатка",
+    feedAsh: "Сырая зола",
+    feedMoisture: "Влага",
+    feedSpecies: "Вид животного",
+    feedDog: "собаки",
+    feedCat: "кошки",
+    feedComplete: "Полнорационный корм",
+    feedAdditivesLbl: "Добавки",
+    feedAdditivesInput: "Добавки (витамины, микроэлементы) — опционально",
+    feedCompositionLbl: "Состав",
+    feedCompositionInput: "Состав (ингредиенты по убыванию)",
+    feedNote: "Этикетка согласно Регламенту (ЕС) 767/2009 о размещении кормов на рынке. Значения по лабораторному анализу.",
+    feedImproveBlocked: "⚠️ Автоматическое улучшение не предлагается для полнорационных кормов: изменения рецептуры должны быть валидированы ветеринарным специалистом по питанию (профили FEDIAF). Используйте AI-анализ для оценки текущего профиля.",
     modeCalc: "Расчётные",
     modeLab: "Лабораторный анализ",
     labNoteInput: "Введите значения на 100 г из лабораторного протокола.",
@@ -793,7 +876,7 @@ Under 200 words. Specific and practical.`,
     llSalt: "Соль (г)",
     designTitleFont: "Шрифт заголовка",
     tfSame: "Как таблица",
-
+ 
     tfScript: "Рукописный ✍",
     tfElegant: "Элегантный",
     tfBold: "Плакатный",
@@ -844,18 +927,18 @@ Under 200 words. Specific and practical.`,
     allergens: {gluten:"Глютен (злаки)", crust:"Ракообразные", eggs:"Яйца", fish:"Рыба", peanuts:"Арахис", soy:"Соя", milk:"Молоко (вкл. лактозу)", nuts:"Орехи", celery:"Сельдерей", mustard:"Горчица", sesame:"Кунжут", sulph:"Диоксид серы/сульфиты", lupin:"Люпин", moll:"Моллюски"},
     promptLang: "ru",
     aiPrompt: (name, ings, serving, total, per) => `Ты технолог пищевого производства. Проанализируй этот рецепт на РУССКОМ языке.
-
+ 
 Продукт: ${name}
 Ингредиенты: ${ings}
 Порция: ${serving}г | Общий вес: ${total}г
 Пищевая ценность на порцию: ${Math.round(per.cal)} ккал, белки ${per.prot.toFixed(1)}г, углеводы ${per.carb.toFixed(1)}г, жиры ${per.fat.toFixed(1)}г, клетчатка ${per.fiber.toFixed(1)}г, натрий ${Math.round(per.sodium)}мг
-
+ 
 Ответь структурированно:
 1. Пищевые достоинства (2-3 пункта)
 2. Рекомендации по улучшению
 3. Примечание по маркировке ЕС (Регламент 1169/2011)
 4. Оценка X/10 с кратким обоснованием
-
+ 
 До 200 слов. Конкретно и практично.`,
   },
   uk: {
@@ -910,6 +993,25 @@ Under 200 words. Specific and practical.`,
     noResults: "Результатів немає. Перевірте написання.",
     g: "г",
     mg: "мг",
+    ptypeHuman: "🍞 Продукти для людей",
+    ptypeFeed: "🐕 Корми для тварин",
+    feedNoteInput: "Введіть аналітичні складові з лабораторного протоколу (на 100 г, у %).",
+    feedAnalytical: "Аналітичні складові",
+    feedProtein: "Сирий протеїн",
+    feedFat: "Сирі жири",
+    feedFibre: "Сира клітковина",
+    feedAsh: "Сира зола",
+    feedMoisture: "Волога",
+    feedSpecies: "Вид тварини",
+    feedDog: "собаки",
+    feedCat: "коти",
+    feedComplete: "Повнораціонний корм",
+    feedAdditivesLbl: "Добавки",
+    feedAdditivesInput: "Добавки (вітаміни, мікроелементи) — опціонально",
+    feedCompositionLbl: "Склад",
+    feedCompositionInput: "Склад (інгредієнти за спаданням)",
+    feedNote: "Етикетка згідно з Регламентом (ЄС) 767/2009 про розміщення кормів на ринку. Значення за лабораторним аналізом.",
+    feedImproveBlocked: "⚠️ Автоматичне покращення не пропонується для повнораціонних кормів: зміни рецептури мають бути валідовані ветеринарним фахівцем з харчування (профілі FEDIAF). Використовуйте AI-аналіз для оцінки поточного профілю.",
     modeCalc: "Розрахункові",
     modeLab: "Лабораторний аналіз",
     labNoteInput: "Введіть значення на 100 г з лабораторного протоколу.",
@@ -924,7 +1026,7 @@ Under 200 words. Specific and practical.`,
     llSalt: "Сіль (г)",
     designTitleFont: "Шрифт заголовка",
     tfSame: "Як таблиця",
-
+ 
     tfScript: "Рукописний ✍",
     tfElegant: "Елегантний",
     tfBold: "Плакатний",
@@ -975,22 +1077,22 @@ Under 200 words. Specific and practical.`,
     allergens: {gluten:"Глютен (злаки)", crust:"Ракоподібні", eggs:"Яйця", fish:"Риба", peanuts:"Арахіс", soy:"Соя", milk:"Молоко (вкл. лактозу)", nuts:"Горіхи", celery:"Селера", mustard:"Гірчиця", sesame:"Кунжут", sulph:"Діоксид сірки/сульфіти", lupin:"Люпин", moll:"Молюски"},
     promptLang: "uk",
     aiPrompt: (name, ings, serving, total, per) => `Ти технолог харчового виробництва. Проаналізуй цей рецепт УКРАЇНСЬКОЮ мовою.
-
+ 
 Продукт: ${name}
 Інгредієнти: ${ings}
 Порція: ${serving}г | Загальна вага: ${total}г
 Харчова цінність на порцію: ${Math.round(per.cal)} ккал, білки ${per.prot.toFixed(1)}г, вуглеводи ${per.carb.toFixed(1)}г, жири ${per.fat.toFixed(1)}г, клітковина ${per.fiber.toFixed(1)}г, натрій ${Math.round(per.sodium)}мг
-
+ 
 Відповідай структуровано:
 1. Харчові переваги (2-3 пункти)
 2. Рекомендації щодо покращення
 3. Примітка щодо маркування ЄС (Регламент 1169/2011)
 4. Оцінка X/10 з коротким обґрунтуванням
-
+ 
 До 200 слів. Конкретно і практично.`,
   }
 };
-
+ 
 // ─── LOCAL INGREDIENT FALLBACK DB (200+ items, works offline) ───────────────
 const LOCAL_DB = {
   // EN keys (also used as canonical)
@@ -1164,7 +1266,7 @@ const LOCAL_DB = {
   "вівсянка":            {cal:389,prot:16.9,carb:66.3,fat:6.9,fiber:10.6,sugar:0,sodium:2},
   "шпинат":              {cal:23,prot:2.9,carb:3.6,fat:0.4,fiber:2.2,sugar:0.4,sodium:79},
 };
-
+ 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let currentLang = 'bg';
 let ingredients = [];
@@ -1172,7 +1274,7 @@ let searchTimeout = null;
 let currentSuggestions = [];
 let selectedSuggIdx = -1;
 let aiNutritionCache = {};
-
+ 
 // ─── LANGUAGE ─────────────────────────────────────────────────────────────────
 function selectLang(lang) {
   currentLang = lang;
@@ -1213,12 +1315,12 @@ function selectLang(lang) {
   }
   renderIngredients();
 }
-
+ 
 function switchLang() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('lang-screen').style.display = 'flex';
 }
-
+ 
 function applyTranslations() {
   const t = T[currentLang];
   document.getElementById('topbar-sub').textContent = t.topbarSub;
@@ -1274,6 +1376,20 @@ function applyTranslations() {
   csel.options[7].text = t.colorOchre; csel.options[8].text = t.colorGraphite; csel.options[9].text = t.colorChocolate;
   document.getElementById('lbl-title-font').textContent = t.designTitleFont;
   document.getElementById('mode-calc').textContent = t.modeCalc;
+  document.getElementById('ptype-human').textContent = t.ptypeHuman;
+  document.getElementById('ptype-feed').textContent = t.ptypeFeed;
+  document.getElementById('feed-note').textContent = t.feedNoteInput;
+  document.getElementById('fl-protein').textContent = t.feedProtein + ' (%)';
+  document.getElementById('fl-fat').textContent = t.feedFat + ' (%)';
+  document.getElementById('fl-fibre').textContent = t.feedFibre + ' (%)';
+  document.getElementById('fl-ash').textContent = t.feedAsh + ' (%)';
+  document.getElementById('fl-moisture').textContent = t.feedMoisture + ' (%)';
+  document.getElementById('fl-species').textContent = t.feedSpecies;
+  const ssel = document.getElementById('feed-species');
+  ssel.options[0].text = t.feedDog.charAt(0).toUpperCase() + t.feedDog.slice(1);
+  ssel.options[1].text = t.feedCat.charAt(0).toUpperCase() + t.feedCat.slice(1);
+  document.getElementById('fl-additives').textContent = t.feedAdditivesInput;
+  document.getElementById('fl-composition').textContent = t.feedCompositionInput;
   document.getElementById('mode-lab').textContent = t.modeLab;
   document.getElementById('lab-note').textContent = t.labNoteInput;
   document.getElementById('ll-kcal').textContent = t.llKcal;
@@ -1289,7 +1405,7 @@ function applyTranslations() {
   tfsel.options[3].text = t.tfBold; tfsel.options[4].text = t.tfGaramond;
   renderAllergens();
 }
-
+ 
 // ─── INGREDIENT SEARCH ───────────────────────────────────────────────────────
 function onIngSearch() {
   const q = document.getElementById('ing-search').value.trim();
@@ -1298,11 +1414,11 @@ function onIngSearch() {
   if (q.length < 2) { hideSuggestions(); return; }
   searchTimeout = setTimeout(() => searchIngredient(q), 300);
 }
-
+ 
 async function searchIngredient(q) {
   const t = T[currentLang];
   currentSuggestions = [];
-
+ 
   // 1. Local DB match
   const localMatches = Object.keys(LOCAL_DB).filter(k =>
     k.toLowerCase().includes(q.toLowerCase())
@@ -1312,12 +1428,12 @@ async function searchIngredient(q) {
     source: 'local',
     data: LOCAL_DB[k]
   }));
-
+ 
   if (localMatches.length > 0) {
     currentSuggestions = localMatches;
     renderSuggestions();
   }
-
+ 
   // 2. USDA search
   showSearchStatus(t.searchingUSDA);
   try {
@@ -1364,7 +1480,7 @@ async function searchIngredient(q) {
       return;
     }
   } catch(e) {}
-
+ 
   // 3. AI fallback if no results yet
   if (currentSuggestions.length === 0) {
     showSearchStatus(t.searchingAI);
@@ -1405,7 +1521,7 @@ Include 1-3 most relevant matches. Estimate if exact data unknown.`
   }
   hideSearchStatus();
 }
-
+ 
 function renderSuggestions() {
   const t = T[currentLang];
   const el = document.getElementById('suggestions');
@@ -1422,18 +1538,18 @@ function renderSuggestions() {
   });
   el.style.display = 'block';
 }
-
+ 
 function renderNoResults() {
   const el = document.getElementById('suggestions');
   el.innerHTML = `<div class="no-results">${T[currentLang].noResults}</div>`;
   el.style.display = 'block';
 }
-
+ 
 function hideSuggestions() {
   document.getElementById('suggestions').style.display = 'none';
   currentSuggestions = [];
 }
-
+ 
 function selectSuggestion(i) {
   const s = currentSuggestions[i];
   document.getElementById('ing-search').value = s.name;
@@ -1441,7 +1557,7 @@ function selectSuggestion(i) {
   hideSuggestions();
   document.getElementById('ing-amount').focus();
 }
-
+ 
 function onIngKeydown(e) {
   const el = document.getElementById('suggestions');
   if (el.style.display === 'none') return;
@@ -1457,14 +1573,14 @@ function onIngKeydown(e) {
     hideSuggestions();
   }
 }
-
+ 
 function showSearchStatus(msg) {
   document.getElementById('search-status').innerHTML = `<div class="search-spinner"></div>${msg}`;
 }
 function hideSearchStatus() {
   document.getElementById('search-status').innerHTML = '';
 }
-
+ 
 // ─── INGREDIENT MANAGEMENT ───────────────────────────────────────────────────
 function addIngredient() {
   const name = document.getElementById('ing-search').value.trim();
@@ -1478,17 +1594,17 @@ function addIngredient() {
   hideSuggestions();
   renderIngredients();
 }
-
+ 
 function removeIng(idx) {
   ingredients.splice(idx, 1);
   renderIngredients();
 }
-
+ 
 function getNutrition(name) {
   const key = name.toLowerCase();
   return aiNutritionCache[key] || LOCAL_DB[key] || null;
 }
-
+ 
 function calcNutrition() {
   const serving = parseFloat(document.getElementById('serving-size').value) || 100;
   const totalWeight = ingredients.reduce((s, i) => s + i.amount, 0);
@@ -1505,7 +1621,7 @@ function calcNutrition() {
   Object.keys(t).forEach(k => per[k] = t[k] * scale);
   return {per, total:t, serving, totalWeight};
 }
-
+ 
 function renderIngredients() {
   const t = T[currentLang];
   const tbody = document.getElementById('ing-tbody');
@@ -1527,12 +1643,12 @@ function renderIngredients() {
   document.getElementById('total-weight-val').textContent = totalWeight.toFixed(0) + ' ' + t.g;
   updateResults();
 }
-
+ 
 function updateResults() {
   const t = T[currentLang];
   const r = calcNutrition();
   const serving = parseFloat(document.getElementById('serving-size').value) || 100;
-
+ 
   if (!r) {
     ['r-cal','r-prot','r-carb','r-fat'].forEach(id => document.getElementById(id).textContent = '—');
     document.getElementById('detail-rows').innerHTML = '';
@@ -1544,13 +1660,13 @@ function updateResults() {
   document.getElementById('r-carb').textContent = p.carb.toFixed(1);
   document.getElementById('r-fat').textContent = p.fat.toFixed(1);
   document.getElementById('per-serving-label').textContent = `${t.perServing} ${serving}${t.g}`;
-
+ 
   document.getElementById('detail-rows').innerHTML = `
     <div class="detail-row"><span class="lbl">${t.fiber}</span><span class="val">${p.fiber.toFixed(1)} ${t.g}</span></div>
     <div class="detail-row"><span class="lbl">${t.sugar}</span><span class="val">${p.sugar.toFixed(1)} ${t.g}</span></div>
     <div class="detail-row"><span class="lbl">${t.sodium}</span><span class="val">${Math.round(p.sodium)} ${t.mg}</span></div>
   `;
-
+ 
   const macroKcal = p.prot*4 + p.carb*4 + p.fat*9;
   if (macroKcal > 0) {
     document.getElementById('prog-wrap').style.display = 'block';
@@ -1566,8 +1682,9 @@ function updateResults() {
   }
   updateLabel(r);
 }
-
+ 
 function updateLabel(r) {
+  if (productType === 'feed') { updateFeedLabel(r); return; }
   const t = T[currentLang];
   let p, kJ, salt, satfatDisplay;
   if (labelMode === 'lab') {
@@ -1616,9 +1733,9 @@ function updateLabel(r) {
   }
   document.getElementById('el-note').textContent = labelMode === 'lab' ? t.labNote : t.euNote;
 }
-
+ 
 function onDataChange() { updateResults(); }
-
+ 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 function showTab(name) {
   ['nutrition','label','ai'].forEach(n => {
@@ -1626,7 +1743,7 @@ function showTab(name) {
     document.getElementById('pane-'+n).classList.toggle('active', n===name);
   });
 }
-
+ 
 // ─── PRINT ────────────────────────────────────────────────────────────────────
 // ─── AI ANALYSIS ──────────────────────────────────────────────────────────────
 async function analyzeWithAI() {
@@ -1639,7 +1756,27 @@ async function analyzeWithAI() {
   output.innerHTML = `<div class="loading-row"><div class="search-spinner"></div>${t.aiLoading}</div>`;
   const ingList = ingredients.map(i => `${i.name} (${i.amount}${t.g})`).join(', ');
   const name = document.getElementById('product-name').value || '—';
-  const prompt = t.aiPrompt(name, ingList, r.serving, r.totalWeight.toFixed(0), r.per);
+  let prompt;
+  if (productType === 'feed') {
+    const F = getFeedValues();
+    const langName = {bg:'БЪЛГАРСКИ', en:'ENGLISH', ru:'РУССКИЙ', uk:'УКРАЇНСЬКА'}[currentLang];
+    prompt = `You are an animal nutrition specialist (pet food, EU Regulation 767/2009, FEDIAF guidelines). Respond in ${langName} only.
+ 
+Product: ${name} — complete feed for ${F.species === 'dog' ? 'dogs' : 'cats'}
+Ingredients: ${ingList || 'not specified'}
+Composition declared: ${F.composition || '—'}
+Analytical constituents: crude protein ${F.protein||'?'}%, crude fats ${F.fat||'?'}%, crude fibre ${F.fibre||'?'}%, crude ash ${F.ash||'?'}%, moisture ${F.moisture||'?'}%
+ 
+Provide:
+1. Assessment vs FEDIAF nutritional guidelines for ${F.species === 'dog' ? 'adult dogs' : 'adult cats'} (2-3 points)
+2. Observations on the analytical profile (what looks good, what raises questions)
+3. EU 767/2009 labelling compliance notes
+4. IMPORTANT: Note that complete feed formulation changes require veterinary nutritionist validation — do NOT give specific reformulation amounts.
+ 
+Under 220 words. Professional, specific.`;
+  } else {
+    prompt = t.aiPrompt(name, ingList, r.serving, r.totalWeight.toFixed(0), r.per);
+  }
   try {
     const res = await fetch('/api/claude', {
       method: 'POST',
@@ -1664,12 +1801,12 @@ async function analyzeWithAI() {
   btn.disabled = false;
   btn.textContent = t.btnAnalyze;
 }
-
-
+ 
+ 
 // ─── ALLERGENS (EU 1169/2011 Annex II) ───────────────────────────────────────
 const ALLERGEN_KEYS = ['gluten','crust','eggs','fish','peanuts','soy','milk','nuts','celery','mustard','sesame','sulph','lupin','moll'];
 let selectedAllergens = [];
-
+ 
 function renderAllergens() {
   const t = T[currentLang];
   const grid = document.getElementById('allergen-grid');
@@ -1694,6 +1831,20 @@ function renderAllergens() {
   csel.options[7].text = t.colorOchre; csel.options[8].text = t.colorGraphite; csel.options[9].text = t.colorChocolate;
   document.getElementById('lbl-title-font').textContent = t.designTitleFont;
   document.getElementById('mode-calc').textContent = t.modeCalc;
+  document.getElementById('ptype-human').textContent = t.ptypeHuman;
+  document.getElementById('ptype-feed').textContent = t.ptypeFeed;
+  document.getElementById('feed-note').textContent = t.feedNoteInput;
+  document.getElementById('fl-protein').textContent = t.feedProtein + ' (%)';
+  document.getElementById('fl-fat').textContent = t.feedFat + ' (%)';
+  document.getElementById('fl-fibre').textContent = t.feedFibre + ' (%)';
+  document.getElementById('fl-ash').textContent = t.feedAsh + ' (%)';
+  document.getElementById('fl-moisture').textContent = t.feedMoisture + ' (%)';
+  document.getElementById('fl-species').textContent = t.feedSpecies;
+  const ssel = document.getElementById('feed-species');
+  ssel.options[0].text = t.feedDog.charAt(0).toUpperCase() + t.feedDog.slice(1);
+  ssel.options[1].text = t.feedCat.charAt(0).toUpperCase() + t.feedCat.slice(1);
+  document.getElementById('fl-additives').textContent = t.feedAdditivesInput;
+  document.getElementById('fl-composition').textContent = t.feedCompositionInput;
   document.getElementById('mode-lab').textContent = t.modeLab;
   document.getElementById('lab-note').textContent = t.labNoteInput;
   document.getElementById('ll-kcal').textContent = t.llKcal;
@@ -1713,8 +1864,58 @@ function renderAllergens() {
     grid.appendChild(div);
   });
 }
-
-
+ 
+ 
+ 
+// ─── PRODUCT TYPE (human food vs pet feed, EU 767/2009) ─────────────────────
+let productType = 'human';
+function setProductType(type) {
+  productType = type;
+  document.getElementById('ptype-human').classList.toggle('on', type === 'human');
+  document.getElementById('ptype-feed').classList.toggle('on', type === 'feed');
+  // Feed mode: hide calc/lab toggle + human lab inputs, show feed inputs; allergens irrelevant
+  document.querySelector('.mode-toggle:not(:first-of-type)') ;
+  document.getElementById('mode-calc').parentElement.style.display = type === 'feed' ? 'none' : 'flex';
+  document.getElementById('feed-inputs').style.display = type === 'feed' ? 'block' : 'none';
+  if (type === 'feed') {
+    document.getElementById('lab-inputs').style.display = 'none';
+  } else {
+    document.getElementById('lab-inputs').style.display = labelMode === 'lab' ? 'block' : 'none';
+  }
+  updateResults();
+}
+function getFeedValues() {
+  const v = id => parseFloat(document.getElementById(id).value);
+  return {
+    protein: v('feed-protein'), fat: v('feed-fat'), fibre: v('feed-fibre'),
+    ash: v('feed-ash'), moisture: v('feed-moisture'),
+    species: document.getElementById('feed-species').value,
+    additives: document.getElementById('feed-additives').value.trim(),
+    composition: document.getElementById('feed-composition').value.trim()
+  };
+}
+function updateFeedLabel(r) {
+  const t = T[currentLang];
+  const F = getFeedValues();
+  const fmt = x => isNaN(x) ? '—' : x.toFixed(1) + ' %';
+  const name = document.getElementById('product-name').value || 'Product';
+  const speciesTxt = F.species === 'dog' ? t.feedDog : t.feedCat;
+  document.getElementById('el-name').textContent = name;
+  document.getElementById('el-batch').textContent = `${t.feedComplete} — ${speciesTxt}`;
+  document.getElementById('el-per100').textContent = t.feedAnalytical;
+  document.getElementById('el-rows').innerHTML = `
+    <div class="el-row bold"><span>${t.feedProtein}</span><span>${fmt(F.protein)}</span></div>
+    <div class="el-row bold"><span>${t.feedFat}</span><span>${fmt(F.fat)}</span></div>
+    <div class="el-row bold"><span>${t.feedFibre}</span><span>${fmt(F.fibre)}</span></div>
+    <div class="el-row bold"><span>${t.feedAsh}</span><span>${fmt(F.ash)}</span></div>
+    <div class="el-row bold"><span>${t.feedMoisture}</span><span>${fmt(F.moisture)}</span></div>
+    ${F.composition ? `<div class="el-row" style="display:block; border-bottom:0.5px solid #999; padding:2px 0"><b>${t.feedCompositionLbl}:</b> ${F.composition}</div>` : ''}
+    ${F.additives ? `<div class="el-row" style="display:block; border-bottom:0.5px solid #999; padding:2px 0"><b>${t.feedAdditivesLbl}:</b> ${F.additives}</div>` : ''}
+  `;
+  document.getElementById('el-allergens').style.display = 'none';
+  document.getElementById('el-note').textContent = t.feedNote;
+}
+ 
 // ─── LABEL DATA MODE (calculated vs lab analysis) ────────────────────────────
 let labelMode = 'calc';
 function setLabelMode(mode) {
@@ -1732,7 +1933,7 @@ function getLabValues() {
     prot: v('lab-prot'), salt: v('lab-salt')
   };
 }
-
+ 
 // ─── LABEL DESIGN ────────────────────────────────────────────────────────────
 const LABEL_FONTS = {
   narrow: "'Arial Narrow', Arial, sans-serif",
@@ -1769,10 +1970,10 @@ function applyLabelDesign() {
   title.style.fontFamily = d.titleFont || '';
   title.style.fontSize = d.titleFont ? `${26 * d.titleScale}px` : '';
 }
-
+ 
 // ─── PRINT SHEET ─────────────────────────────────────────────────────────────
 const LABEL_SIZES = { S: {w:55, h:70, font:7.2}, M: {w:70, h:95, font:9}, L: {w:95, h:130, font:11.5} };
-
+ 
 function printLabels() {
   const d = getLabelDesign();
   const size = LABEL_SIZES[document.getElementById('label-size').value];
@@ -1799,10 +2000,14 @@ function printLabels() {
   </style></head><body>${labels}<scr`+`ipt>window.print();</scr`+`ipt></body></html>`);
   w.document.close();
 }
-
+ 
 // ─── IMPROVE RECIPE ──────────────────────────────────────────────────────────
 async function improveRecipe() {
   const t = T[currentLang];
+  if (productType === 'feed') {
+    document.getElementById('ai-output').innerHTML = `<div class="lab-note" style="margin-top:12px">${t.feedImproveBlocked}</div>`;
+    return;
+  }
   const r = calcNutrition();
   if (!r || !ingredients.length) return;
   const btn = document.getElementById('btn-improve');
@@ -1821,20 +2026,20 @@ async function improveRecipe() {
   const name = document.getElementById('product-name').value || '—';
   const langName = {bg:'БЪЛГАРСКИ', en:'ENGLISH', ru:'РУССКИЙ', uk:'УКРАЇНСЬКА'}[currentLang];
   const prompt = `You are a food technologist. Respond in ${langName} only.
-
+ 
 Product: ${name}
 Current recipe: ${ingList}
 Total batch: ${r.totalWeight.toFixed(0)}g
 Current nutrition per 100g: ${Math.round(r.per.cal*100/r.serving)} kcal, protein ${(r.per.prot*100/r.serving).toFixed(1)}g, carbs ${(r.per.carb*100/r.serving).toFixed(1)}g, fat ${(r.per.fat*100/r.serving).toFixed(1)}g, fiber ${(r.per.fiber*100/r.serving).toFixed(1)}g, sodium ${Math.round(r.per.sodium*100/r.serving)}mg
-
+ 
 GOAL: ${goalText}
-
+ 
 Provide an IMPROVED version of this recipe:
 1. Full new ingredient list WITH EXACT GRAM AMOUNTS (modify amounts, substitute or add ingredients as needed)
 2. Brief explanation of each change (1 line per change)
 3. Expected nutritional impact
 4. Keep the product technologically feasible (baking/food science constraints apply)
-
+ 
 Under 250 words. Practical, specific grams.`;
   try {
     const res = await fetch('/api/claude', {
