@@ -208,3 +208,11 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .saved-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
 .saved-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 .saved-actions .btn { padding: 5px 10px; font-size: 12px; }
+
+/* ADDITIVES */
+#additive-select { font-size: 13px; }
+.additive-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); color: var(--text); font-size: 12px; padding: 4px 6px 4px 10px; border-radius: 14px; margin: 0 6px 6px 0; }
+.additive-chip button { border: none; background: var(--border2); color: #fff; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.additive-chip button:hover { background: var(--red); }
+.el-composition { font-size: 9.5px; margin-top: 6px; line-height: 1.35; }
+.el-composition b { font-weight: 800; }

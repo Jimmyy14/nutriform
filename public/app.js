@@ -133,6 +133,12 @@ function applyTranslations() {
   const tfsel = document.getElementById('label-title-font');
   tfsel.options[0].text = t.tfSame; tfsel.options[1].text = t.tfScript; tfsel.options[2].text = t.tfElegant;
   tfsel.options[3].text = t.tfBold; tfsel.options[4].text = t.tfGaramond;
+  document.getElementById('lbl-additives').textContent = ADD_T[currentLang].title;
+  document.getElementById('lbl-additive-pick').textContent = ADD_T[currentLang].pick;
+  document.getElementById('btn-add-additive').textContent = ADD_T[currentLang].add;
+  document.getElementById('btn-add-custom-additive').textContent = ADD_T[currentLang].custom;
+  populateAdditiveSelect();
+  renderAdditives();
   document.getElementById('lbl-saved').textContent = SAVED_T[currentLang].title;
   document.getElementById('btn-save-recipe').textContent = SAVED_T[currentLang].save;
   renderSavedRecipes();
@@ -456,6 +462,15 @@ function updateLabel(r) {
     <div class="el-row bold"><span>${t.proteinEU}</span><span>${p.prot.toFixed(1)} ${t.g}</span></div>
     <div class="el-row bold"><span>${t.saltEU}</span><span>${salt.toFixed(2)} ${t.g}</span></div>
   `;
+  // Състав (задължителен по Регл. 1169/2011): съставки в низходящ ред + добавки с E-номер
+  const compEl = document.getElementById('el-composition');
+  const comp = buildComposition();
+  if (comp) {
+    compEl.innerHTML = `<b>${ADD_T[currentLang].composition}:</b> ${escapeHtml(comp)}`;
+    compEl.style.display = 'block';
+  } else {
+    compEl.style.display = 'none';
+  }
   const allergenEl = document.getElementById('el-allergens');
   if (selectedAllergens.length > 0) {
     const names = selectedAllergens.map(k => `<b>${t.allergens[k]}</b>`).join(', ');
@@ -605,6 +620,8 @@ function updateFeedLabel(r) {
     ${F.composition ? `<div class="el-row" style="display:block; border-bottom:0.5px solid #999; padding:2px 0"><b>${t.feedCompositionLbl}:</b> ${F.composition}</div>` : ''}
     ${F.additives ? `<div class="el-row" style="display:block; border-bottom:0.5px solid #999; padding:2px 0"><b>${t.feedAdditivesLbl}:</b> ${F.additives}</div>` : ''}
   `;
+  const compFeed = document.getElementById('el-composition');
+  if (compFeed) compFeed.style.display = 'none';
   document.getElementById('el-allergens').style.display = 'none';
   document.getElementById('el-note').textContent = t.feedNote;
 }
@@ -856,6 +873,7 @@ function saveCurrentRecipe() {
     // пазим и хранителните данни на всяка съставка → рецептата се смята дори офлайн / за USDA/AI продукти
     ingredients: ingredients.map(i => ({ name: i.name, amount: i.amount, source: i.source, data: getNutrition(i.name) || null })),
     allergens: selectedAllergens.slice(),
+    additives: selectedAdditives.slice(),
     lab: { kcal: val('lab-kcal'), fat: val('lab-fat'), satfat: val('lab-satfat'), carb: val('lab-carb'), sugar: val('lab-sugar'), fiber: val('lab-fiber'), prot: val('lab-prot'), salt: val('lab-salt') },
     feed: { protein: val('feed-protein'), fat: val('feed-fat'), fibre: val('feed-fibre'), ash: val('feed-ash'), moisture: val('feed-moisture'), species: val('feed-species'), additives: val('feed-additives'), composition: val('feed-composition') }
   };
@@ -879,6 +897,7 @@ function loadRecipe(id) {
     return { name: i.name, amount: i.amount, source: i.source };
   });
   selectedAllergens = (rec.allergens || []).slice();
+  selectedAdditives = (rec.additives || []).slice();
   if (rec.lab) ['kcal','fat','satfat','carb','sugar','fiber','prot','salt'].forEach(k => setVal('lab-' + k, rec.lab[k]));
   if (rec.feed) {
     ['protein','fat','fibre','ash','moisture','additives','composition'].forEach(k => setVal('feed-' + k, rec.feed[k]));
@@ -888,6 +907,7 @@ function loadRecipe(id) {
   setProductType(rec.productType || 'human');
   setLabelMode(rec.labelMode || 'calc');
   renderAllergens();
+  renderAdditives();
   renderIngredients();
   showSavedStatus(st.loadedMsg);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -922,6 +942,123 @@ function renderSavedRecipes() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ─── ДОБАВКИ (E-номера, задължителни на етикета по Регламент 1169/2011) ───────
+const ADD_FN = {
+  preservative: { bg:'консервант', en:'preservative', ru:'консервант', uk:'консервант' },
+  antioxidant:  { bg:'антиоксидант', en:'antioxidant', ru:'антиоксидант', uk:'антиоксидант' },
+  acidity:      { bg:'регулатор на киселинност', en:'acidity regulator', ru:'регулятор кислотности', uk:'регулятор кислотності' },
+  emulsifier:   { bg:'емулгатор', en:'emulsifier', ru:'эмульгатор', uk:'емульгатор' },
+  thickener:    { bg:'сгъстител', en:'thickener', ru:'загуститель', uk:'загусник' },
+  raising:      { bg:'набухвател', en:'raising agent', ru:'разрыхлитель', uk:'розпушувач' },
+  colour:       { bg:'оцветител', en:'colour', ru:'краситель', uk:'барвник' },
+  flavour:      { bg:'овкусител', en:'flavour enhancer', ru:'усилитель вкуса', uk:'підсилювач смаку' },
+  sweetener:    { bg:'подсладител', en:'sweetener', ru:'подсластитель', uk:'підсолоджувач' },
+  anticaking:   { bg:'антислепващ агент', en:'anti-caking agent', ru:'антислёживатель', uk:'антизлежувач' },
+  stabiliser:   { bg:'стабилизатор', en:'stabiliser', ru:'стабилизатор', uk:'стабілізатор' },
+};
+const ADD_CATALOG = [
+  { e:'E 200', fn:'preservative', name:{bg:'сорбинова киселина', en:'sorbic acid'} },
+  { e:'E 202', fn:'preservative', name:{bg:'калиев сорбат', en:'potassium sorbate'} },
+  { e:'E 211', fn:'preservative', name:{bg:'натриев бензоат', en:'sodium benzoate'} },
+  { e:'E 223', fn:'preservative', name:{bg:'натриев метабисулфит', en:'sodium metabisulphite'} },
+  { e:'E 250', fn:'preservative', name:{bg:'натриев нитрит', en:'sodium nitrite'} },
+  { e:'E 251', fn:'preservative', name:{bg:'натриев нитрат', en:'sodium nitrate'} },
+  { e:'E 252', fn:'preservative', name:{bg:'калиев нитрат', en:'potassium nitrate'} },
+  { e:'E 300', fn:'antioxidant', name:{bg:'аскорбинова киселина', en:'ascorbic acid'} },
+  { e:'E 301', fn:'antioxidant', name:{bg:'натриев аскорбат', en:'sodium ascorbate'} },
+  { e:'E 306', fn:'antioxidant', name:{bg:'токофероли (вит. E)', en:'tocopherols'} },
+  { e:'E 322', fn:'emulsifier', name:{bg:'лецитини', en:'lecithins'} },
+  { e:'E 471', fn:'emulsifier', name:{bg:'моно- и диглицериди на мастни киселини', en:'mono- and diglycerides of fatty acids'} },
+  { e:'E 270', fn:'acidity', name:{bg:'млечна киселина', en:'lactic acid'} },
+  { e:'E 296', fn:'acidity', name:{bg:'ябълчена киселина', en:'malic acid'} },
+  { e:'E 330', fn:'acidity', name:{bg:'лимонена киселина', en:'citric acid'} },
+  { e:'E 339', fn:'acidity', name:{bg:'натриеви фосфати', en:'sodium phosphates'} },
+  { e:'E 575', fn:'acidity', name:{bg:'глюконо-делта-лактон', en:'glucono-delta-lactone'} },
+  { e:'E 407', fn:'thickener', name:{bg:'карагенан', en:'carrageenan'} },
+  { e:'E 410', fn:'thickener', name:{bg:'брашно от рожкови семена', en:'locust bean gum'} },
+  { e:'E 412', fn:'thickener', name:{bg:'гума гуар', en:'guar gum'} },
+  { e:'E 415', fn:'thickener', name:{bg:'ксантанова гума', en:'xanthan gum'} },
+  { e:'E 440', fn:'thickener', name:{bg:'пектин', en:'pectin'} },
+  { e:'E 1422', fn:'thickener', name:{bg:'модифицирано нишесте', en:'modified starch'} },
+  { e:'E 500', fn:'raising', name:{bg:'натриеви карбонати (сода)', en:'sodium carbonates'} },
+  { e:'E 503', fn:'raising', name:{bg:'амониеви карбонати', en:'ammonium carbonates'} },
+  { e:'E 450', fn:'raising', name:{bg:'дифосфати', en:'diphosphates'} },
+  { e:'E 100', fn:'colour', name:{bg:'куркумин', en:'curcumin'} },
+  { e:'E 150a', fn:'colour', name:{bg:'карамел', en:'caramel'} },
+  { e:'E 160a', fn:'colour', name:{bg:'бета-каротин', en:'beta-carotene'} },
+  { e:'E 160c', fn:'colour', name:{bg:'екстракт от паприка', en:'paprika extract'} },
+  { e:'E 621', fn:'flavour', name:{bg:'мононатриев глутамат', en:'monosodium glutamate'} },
+  { e:'E 950', fn:'sweetener', name:{bg:'ацесулфам K', en:'acesulfame K'} },
+  { e:'E 951', fn:'sweetener', name:{bg:'аспартам', en:'aspartame'} },
+  { e:'E 960', fn:'sweetener', name:{bg:'стевиол гликозиди', en:'steviol glycosides'} },
+  { e:'E 551', fn:'anticaking', name:{bg:'силициев диоксид', en:'silicon dioxide'} },
+];
+const ADD_T = {
+  bg: { title:'Добавки (E-номера)', pick:'Добави добавка', add:'+ Добави', custom:'+ Друга добавка…', choose:'— избери —', customPrompt:'Въведи добавката (функция, име, E-номер):\nнапр. консервант (калиев сорбат, E 202)', composition:'Състав' },
+  en: { title:'Additives (E numbers)', pick:'Add additive', add:'+ Add', custom:'+ Other additive…', choose:'— choose —', customPrompt:'Enter the additive (function, name, E number):\ne.g. preservative (potassium sorbate, E 202)', composition:'Ingredients' },
+  ru: { title:'Добавки (E-номера)', pick:'Добавить добавку', add:'+ Добавить', custom:'+ Другая добавка…', choose:'— выбери —', customPrompt:'Введите добавку (функция, название, E-номер):\nнапр. консервант (сорбат калия, E 202)', composition:'Состав' },
+  uk: { title:'Добавки (E-номери)', pick:'Додати добавку', add:'+ Додати', custom:'+ Інша добавка…', choose:'— обери —', customPrompt:'Введіть добавку (функція, назва, E-номер):\nнапр. консервант (сорбат калію, E 202)', composition:'Склад' },
+};
+let selectedAdditives = [];
+
+function additiveName(a) {
+  return a.name ? (a.name[currentLang] || a.name.bg || a.name.en) : '';
+}
+function additiveLabel(a) {
+  if (a.raw) return a.raw;
+  const fn = ADD_FN[a.fn] ? (ADD_FN[a.fn][currentLang] || ADD_FN[a.fn].bg) : '';
+  const nm = additiveName(a);
+  const e = a.e ? ', ' + a.e : '';
+  return fn ? `${fn} (${nm}${e})` : `${nm}${e}`;
+}
+function populateAdditiveSelect() {
+  const sel = document.getElementById('additive-select');
+  if (!sel) return;
+  const st = ADD_T[currentLang];
+  let html = `<option value="">${st.choose}</option>`;
+  ADD_CATALOG.forEach((a, i) => {
+    const fn = ADD_FN[a.fn][currentLang] || ADD_FN[a.fn].bg;
+    html += `<option value="${i}">${a.e} — ${additiveName(a)} (${fn})</option>`;
+  });
+  sel.innerHTML = html;
+}
+function addAdditiveFromSelect() {
+  const sel = document.getElementById('additive-select');
+  if (!sel || sel.value === '') return;
+  const a = ADD_CATALOG[parseInt(sel.value)];
+  if (a && !selectedAdditives.some(x => x.e === a.e && !x.raw)) {
+    selectedAdditives.push({ e:a.e, fn:a.fn, name:a.name });
+  }
+  sel.value = '';
+  renderAdditives();
+  updateResults();
+}
+function addCustomAdditive() {
+  const txt = (prompt(ADD_T[currentLang].customPrompt) || '').trim();
+  if (!txt) return;
+  selectedAdditives.push({ raw: txt });
+  renderAdditives();
+  updateResults();
+}
+function removeAdditive(idx) {
+  selectedAdditives.splice(idx, 1);
+  renderAdditives();
+  updateResults();
+}
+function renderAdditives() {
+  const list = document.getElementById('additive-list');
+  if (!list) return;
+  list.innerHTML = selectedAdditives.map((a, i) =>
+    `<span class="additive-chip">${escapeHtml(additiveLabel(a))}<button onclick="removeAdditive(${i})" title="✕">✕</button></span>`
+  ).join('');
+}
+function buildComposition() {
+  const parts = ingredients.slice().sort((a, b) => b.amount - a.amount).map(i => i.name);
+  const adds = selectedAdditives.map(a => additiveLabel(a));
+  const all = parts.concat(adds);
+  return all.length ? all.join(', ') : '';
 }
 
 // Close suggestions on outside click

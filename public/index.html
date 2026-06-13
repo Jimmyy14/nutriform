@@ -136,6 +136,23 @@
       </div>
 
       <div class="card">
+        <div class="card-header"><span>🧫</span><h2 id="lbl-additives">Additives (E numbers)</h2></div>
+        <div class="card-body">
+          <div class="row" style="align-items:flex-end; gap:8px;">
+            <div class="field" style="flex:1; margin-bottom:0">
+              <label id="lbl-additive-pick">Add additive</label>
+              <select id="additive-select"></select>
+            </div>
+            <div style="padding-bottom:1px">
+              <button class="btn" id="btn-add-additive" onclick="addAdditiveFromSelect()">+ Add</button>
+            </div>
+          </div>
+          <button class="btn" id="btn-add-custom-additive" onclick="addCustomAdditive()" style="margin-top:8px; font-size:12px;">+ Other additive…</button>
+          <div id="additive-list" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-header"><span>💾</span><h2 id="lbl-saved">Saved recipes</h2></div>
         <div class="card-body">
           <button class="btn btn-green" id="btn-save-recipe" onclick="saveCurrentRecipe()">💾 Save recipe</button>
@@ -226,6 +243,7 @@
           <div class="el-serv" id="el-batch"></div>
           <div style="font-size:12px; font-weight:700; border-bottom:4px solid #111; padding-bottom:3px; margin-bottom:3px;" id="el-per100">Хранителна информация на 100 г</div>
           <div id="el-rows"></div>
+          <div class="el-composition" id="el-composition" style="display:none"></div>
           <div class="el-allergens" id="el-allergens" style="display:none"></div>
           <div class="el-note" id="el-note"></div>
         </div>
