@@ -216,3 +216,4 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .additive-chip button:hover { background: var(--red); }
 .el-composition { font-size: 9.5px; margin-top: 6px; line-height: 1.35; }
 .el-composition b { font-weight: 800; }
+.auto-badge { margin-left: auto; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--green); background: var(--green-bg); padding: 1px 5px; border-radius: 8px; }

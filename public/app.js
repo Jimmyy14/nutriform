@@ -380,6 +380,8 @@ function renderIngredients() {
     tbody.appendChild(tr);
   });
   document.getElementById('total-weight-val').textContent = totalWeight.toFixed(0) + ' ' + t.g;
+  syncAutoAllergens();
+  renderAllergens();
   updateResults();
 }
  
@@ -554,17 +556,92 @@ Under 220 words. Professional, specific.`;
 // ─── ALLERGENS (EU 1169/2011 Annex II) ───────────────────────────────────────
 const ALLERGEN_KEYS = ['gluten','crust','eggs','fish','peanuts','soy','milk','nuts','celery','mustard','sesame','sulph','lupin','moll'];
 let selectedAllergens = [];
- 
+let autoAllergens = []; // алергени, засечени по съставките
+
+// Точна карта за съставките в базата (надеждна)
+const INGREDIENT_ALLERGENS = {
+  // глутен (зърнени с глутен)
+  'пшенично брашно':['gluten'],'пълнозърнесто брашно':['gluten'],'ръжено брашно':['gluten'],'грис':['gluten'],
+  'галета':['gluten'],'овес':['gluten'],'овесени ядки':['gluten'],'ечемик':['gluten'],'спелта брашно':['gluten'],
+  'кускус':['gluten'],'грухан булгур':['gluten'],'пшенични трици':['gluten'],'квас':['gluten'],
+  'wheat flour':['gluten'],'whole wheat flour':['gluten'],'rye flour':['gluten'],'oat flour':['gluten'],'oats':['gluten'],
+  'semolina':['gluten'],'breadcrumbs':['gluten'],'sourdough starter':['gluten'],'wheat bran':['gluten'],'oat bran':['gluten'],
+  // мляко
+  'мляко':['milk'],'кисело мляко':['milk'],'извара':['milk'],'сирене':['milk'],'кашкавал':['milk'],'крема сирене':['milk'],
+  'топено сирене':['milk'],'моцарела':['milk'],'сметана':['milk'],'заквасена сметана':['milk'],'сметана за готвене':['milk'],
+  'сухо мляко':['milk'],'обезмаслено сухо мляко':['milk'],'кондензирано мляко':['milk'],'масло':['milk'],'суроватъчен протеин':['milk'],
+  'milk':['milk'],'cheese':['milk'],'butter':['milk'],'cream':['milk'],'yogurt':['milk'],'cottage cheese':['milk'],
+  'whey protein':['milk'],'sour cream':['milk'],'cream cheese':['milk'],'white cheese':['milk'],'milk powder':['milk'],'skim milk powder':['milk'],
+  // яйца
+  'яйца':['eggs'],'яйчен прах':['eggs'],'eggs':['eggs'],
+  // риба
+  'скумрия':['fish'],'хек':['fish'],'рибно брашно':['fish'],'salmon':['fish'],'tuna':['fish'],
+  // соя
+  'соев протеин':['soy'],'соево брашно':['soy'],'соево мляко':['soy'],'соев шрот':['soy'],'пълномаслена соя':['soy'],
+  'soy protein':['soy'],'soy milk':['soy'],'tofu':['soy'],'soybean meal':['soy'],
+  // ядки (дървесни)
+  'орехи':['nuts'],'бадеми':['nuts'],'бадемово брашно':['nuts'],'walnuts':['nuts'],'almonds':['nuts'],'hazelnuts':['nuts'],'almond flour':['nuts'],
+  // фъстъци
+  'peanuts':['peanuts'],
+  // сусам
+  'сусам':['sesame'],'sesame seeds':['sesame'],
+};
+
+// Резервно засичане по ключови думи (за въведени/USDA имена извън базата)
+const ALLERGEN_KW = {
+  gluten: ['пшени','ръжен','ечемик','спелта','малц','wheat','rye','barley','spelt','malt','семолина','semolina','кускус','couscous','булгур','bulgur'],
+  milk:   ['мляк','млечн','сирене','кашкавал','извара','сметан','йогурт','суроватъч','казеин','cheese','cream','yogurt','whey','casein','dairy'],
+  eggs:   ['яйц','egg'],
+  fish:   ['риба','рибн','тон','сьомга','скумрия','пъстърва','fish','tuna','salmon','mackerel','trout','cod','херинга','herring','аншоа','anchovy'],
+  soy:    ['соя','соев','соево','tofu','soy','soya','edamame'],
+  nuts:   ['орех','бадем','лешник','кашу','шамфъстък','фъстъчен','walnut','almond','hazelnut','cashew','pistachio','pecan','macadamia'],
+  peanuts:['фъстък','фъстъци','peanut','arachis'],
+  sesame: ['сусам','тахан','sesame','tahini'],
+  celery: ['целина','celery','celeriac'],
+  mustard:['горчиц','синап','mustard'],
+  sulph:  ['сулфит','серен диоксид','sulphite','sulfite'],
+  lupin:  ['лупин','lupin'],
+  crust:  ['скарид','раци','ракообразн','shrimp','prawn','crab','lobster','crayfish','crustacean'],
+  moll:   ['мида','миди','калмар','охлюв','октопод','mussel','clam','oyster','squid','octopus','snail','scallop','mollus'],
+};
+const PLANT_MILK = ['соев','соево','soy','кокос','coconut','бадем','almond','оризов','rice','овесен','oat','растителн','plant'];
+
+function detectAllergens() {
+  const found = new Set();
+  ingredients.forEach(ing => {
+    const nm = (ing.name || '').toLowerCase();
+    const exact = INGREDIENT_ALLERGENS[nm];
+    if (exact) exact.forEach(a => found.add(a));
+    for (const [key, kws] of Object.entries(ALLERGEN_KW)) {
+      if (kws.some(kw => nm.includes(kw))) {
+        // не бъркай растителни «млека» с краве мляко
+        if (key === 'milk' && PLANT_MILK.some(p => nm.includes(p))) continue;
+        found.add(key);
+      }
+    }
+  });
+  return [...found];
+}
+
+// Засича алергените по съставките и ги слива с ръчно избраните
+function syncAutoAllergens() {
+  const manual = selectedAllergens.filter(k => !autoAllergens.includes(k));
+  autoAllergens = detectAllergens();
+  selectedAllergens = [...new Set([...manual, ...autoAllergens])];
+}
+
 function renderAllergens() {
   const t = T[currentLang];
   const grid = document.getElementById('allergen-grid');
   grid.innerHTML = '';
   ALLERGEN_KEYS.forEach(key => {
+    const isAuto = autoAllergens.includes(key);
     const div = document.createElement('label');
     div.className = 'allergen-chip' + (selectedAllergens.includes(key) ? ' on' : '');
-    div.innerHTML = `<input type="checkbox" ${selectedAllergens.includes(key)?'checked':''}><span>${t.allergens[key]}</span>`;
+    const autoBadge = isAuto ? `<span class="auto-badge">${ADD_T[currentLang].auto}</span>` : '';
+    div.innerHTML = `<input type="checkbox" ${selectedAllergens.includes(key)?'checked':''}><span>${t.allergens[key]}</span>${autoBadge}`;
     div.querySelector('input').addEventListener('change', e => {
-      if (e.target.checked) selectedAllergens.push(key);
+      if (e.target.checked) { if (!selectedAllergens.includes(key)) selectedAllergens.push(key); }
       else selectedAllergens = selectedAllergens.filter(k => k !== key);
       div.classList.toggle('on', e.target.checked);
       updateResults();
@@ -996,10 +1073,10 @@ const ADD_CATALOG = [
   { e:'E 551', fn:'anticaking', name:{bg:'силициев диоксид', en:'silicon dioxide'} },
 ];
 const ADD_T = {
-  bg: { title:'Добавки (E-номера)', pick:'Добави добавка', add:'+ Добави', custom:'+ Друга добавка…', choose:'— избери —', customPrompt:'Въведи добавката (функция, име, E-номер):\nнапр. консервант (калиев сорбат, E 202)', composition:'Състав' },
-  en: { title:'Additives (E numbers)', pick:'Add additive', add:'+ Add', custom:'+ Other additive…', choose:'— choose —', customPrompt:'Enter the additive (function, name, E number):\ne.g. preservative (potassium sorbate, E 202)', composition:'Ingredients' },
-  ru: { title:'Добавки (E-номера)', pick:'Добавить добавку', add:'+ Добавить', custom:'+ Другая добавка…', choose:'— выбери —', customPrompt:'Введите добавку (функция, название, E-номер):\nнапр. консервант (сорбат калия, E 202)', composition:'Состав' },
-  uk: { title:'Добавки (E-номери)', pick:'Додати добавку', add:'+ Додати', custom:'+ Інша добавка…', choose:'— обери —', customPrompt:'Введіть добавку (функція, назва, E-номер):\nнапр. консервант (сорбат калію, E 202)', composition:'Склад' },
+  bg: { title:'Добавки (E-номера)', pick:'Добави добавка', add:'+ Добави', custom:'+ Друга добавка…', choose:'— избери —', customPrompt:'Въведи добавката (функция, име, E-номер):\nнапр. консервант (калиев сорбат, E 202)', composition:'Състав', auto:'авто' },
+  en: { title:'Additives (E numbers)', pick:'Add additive', add:'+ Add', custom:'+ Other additive…', choose:'— choose —', customPrompt:'Enter the additive (function, name, E number):\ne.g. preservative (potassium sorbate, E 202)', composition:'Ingredients', auto:'auto' },
+  ru: { title:'Добавки (E-номера)', pick:'Добавить добавку', add:'+ Добавить', custom:'+ Другая добавка…', choose:'— выбери —', customPrompt:'Введите добавку (функция, название, E-номер):\nнапр. консервант (сорбат калия, E 202)', composition:'Состав', auto:'авто' },
+  uk: { title:'Добавки (E-номери)', pick:'Додати добавку', add:'+ Додати', custom:'+ Інша добавка…', choose:'— обери —', customPrompt:'Введіть добавку (функція, назва, E-номер):\nнапр. консервант (сорбат калію, E 202)', composition:'Склад', auto:'авто' },
 };
 let selectedAdditives = [];
 
