@@ -133,6 +133,9 @@ function applyTranslations() {
   const tfsel = document.getElementById('label-title-font');
   tfsel.options[0].text = t.tfSame; tfsel.options[1].text = t.tfScript; tfsel.options[2].text = t.tfElegant;
   tfsel.options[3].text = t.tfBold; tfsel.options[4].text = t.tfGaramond;
+  document.getElementById('lbl-saved').textContent = SAVED_T[currentLang].title;
+  document.getElementById('btn-save-recipe').textContent = SAVED_T[currentLang].save;
+  renderSavedRecipes();
   renderAllergens();
 }
  
@@ -809,6 +812,118 @@ function rejectProposal() {
   document.getElementById('ai-output').innerHTML = '';
 }
  
+// ─── SAVED RECIPES (запазени рецепти / история — localStorage) ────────────────
+const SAVED_KEY = 'nutriform_recipes_v1';
+const SAVED_T = {
+  bg: { title:'Запазени рецепти', save:'💾 Запази рецептата', none:'Все още няма запазени рецепти.', load:'Зареди', del:'Изтрий', namePrompt:'Име на рецептата:', confirmDel:'Да изтрия ли тази рецепта?', savedMsg:'✓ Рецептата е запазена', loadedMsg:'✓ Рецептата е заредена', ingShort:'съст.' },
+  en: { title:'Saved recipes', save:'💾 Save recipe', none:'No saved recipes yet.', load:'Load', del:'Delete', namePrompt:'Recipe name:', confirmDel:'Delete this recipe?', savedMsg:'✓ Recipe saved', loadedMsg:'✓ Recipe loaded', ingShort:'ing.' },
+  ru: { title:'Сохранённые рецепты', save:'💾 Сохранить рецепт', none:'Пока нет сохранённых рецептов.', load:'Загрузить', del:'Удалить', namePrompt:'Название рецепта:', confirmDel:'Удалить этот рецепт?', savedMsg:'✓ Рецепт сохранён', loadedMsg:'✓ Рецепт загружен', ingShort:'ингр.' },
+  uk: { title:'Збережені рецепти', save:'💾 Зберегти рецепт', none:'Поки немає збережених рецептів.', load:'Завантажити', del:'Видалити', namePrompt:'Назва рецепта:', confirmDel:'Видалити цей рецепт?', savedMsg:'✓ Рецепт збережено', loadedMsg:'✓ Рецепт завантажено', ingShort:'інгр.' },
+};
+
+function getSavedRecipes() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY)) || []; } catch(e) { return []; }
+}
+function setSavedRecipes(arr) {
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function showSavedStatus(msg) {
+  const el = document.getElementById('saved-status');
+  if (!el) return;
+  el.textContent = msg;
+  clearTimeout(showSavedStatus._t);
+  showSavedStatus._t = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function saveCurrentRecipe() {
+  const st = SAVED_T[currentLang];
+  if (!ingredients.length) return;
+  let name = (document.getElementById('product-name').value || '').trim();
+  if (!name) {
+    name = (prompt(st.namePrompt) || '').trim();
+    if (!name) return;
+    document.getElementById('product-name').value = name;
+  }
+  const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const recipe = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name, ts: Date.now(), lang: currentLang,
+    productType, labelMode,
+    serving: val('serving-size'),
+    // пазим и хранителните данни на всяка съставка → рецептата се смята дори офлайн / за USDA/AI продукти
+    ingredients: ingredients.map(i => ({ name: i.name, amount: i.amount, source: i.source, data: getNutrition(i.name) || null })),
+    allergens: selectedAllergens.slice(),
+    lab: { kcal: val('lab-kcal'), fat: val('lab-fat'), satfat: val('lab-satfat'), carb: val('lab-carb'), sugar: val('lab-sugar'), fiber: val('lab-fiber'), prot: val('lab-prot'), salt: val('lab-salt') },
+    feed: { protein: val('feed-protein'), fat: val('feed-fat'), fibre: val('feed-fibre'), ash: val('feed-ash'), moisture: val('feed-moisture'), species: val('feed-species'), additives: val('feed-additives'), composition: val('feed-composition') }
+  };
+  const all = getSavedRecipes();
+  all.unshift(recipe);
+  setSavedRecipes(all);
+  renderSavedRecipes();
+  showSavedStatus(st.savedMsg);
+}
+
+function loadRecipe(id) {
+  const st = SAVED_T[currentLang];
+  const rec = getSavedRecipes().find(r => r.id === id);
+  if (!rec) return;
+  const setVal = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = (v == null ? '' : v); };
+  setVal('product-name', rec.name);
+  setVal('serving-size', rec.serving || 100);
+  // съставки + възстановяване на кеша с хранителни данни
+  ingredients = (rec.ingredients || []).map(i => {
+    if (i.data) aiNutritionCache[String(i.name).toLowerCase()] = i.data;
+    return { name: i.name, amount: i.amount, source: i.source };
+  });
+  selectedAllergens = (rec.allergens || []).slice();
+  if (rec.lab) ['kcal','fat','satfat','carb','sugar','fiber','prot','salt'].forEach(k => setVal('lab-' + k, rec.lab[k]));
+  if (rec.feed) {
+    ['protein','fat','fibre','ash','moisture','additives','composition'].forEach(k => setVal('feed-' + k, rec.feed[k]));
+    if (rec.feed.species) setVal('feed-species', rec.feed.species);
+  }
+  // режими (тези функции пускат и преизчисляване)
+  setProductType(rec.productType || 'human');
+  setLabelMode(rec.labelMode || 'calc');
+  renderAllergens();
+  renderIngredients();
+  showSavedStatus(st.loadedMsg);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteRecipe(id) {
+  const st = SAVED_T[currentLang];
+  if (!confirm(st.confirmDel)) return;
+  setSavedRecipes(getSavedRecipes().filter(r => r.id !== id));
+  renderSavedRecipes();
+}
+
+function renderSavedRecipes() {
+  const st = SAVED_T[currentLang];
+  const list = document.getElementById('saved-list');
+  if (!list) return;
+  const all = getSavedRecipes();
+  if (!all.length) { list.innerHTML = `<div class="no-results" style="padding:10px 0">${st.none}</div>`; return; }
+  list.innerHTML = all.map(r => {
+    const d = new Date(r.ts);
+    const date = d.toLocaleDateString() + ' ' + d.toTimeString().slice(0, 5);
+    const cnt = (r.ingredients || []).length;
+    const icon = r.productType === 'feed' ? '🐕' : '🍞';
+    return `<div class="saved-item">
+      <div class="saved-meta">
+        <div class="saved-name">${icon} ${escapeHtml(r.name)}</div>
+        <div class="saved-sub">${date} · ${cnt} ${st.ingShort}</div>
+      </div>
+      <div class="saved-actions">
+        <button class="btn" onclick="loadRecipe('${r.id}')">▶ ${st.load}</button>
+        <button class="del-btn" title="${st.del}" onclick="deleteRecipe('${r.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // Close suggestions on outside click
 document.addEventListener('click', e => {
   if (!e.target.closest('.ing-search-wrap') && !e.target.closest('#suggestions')) hideSuggestions();
