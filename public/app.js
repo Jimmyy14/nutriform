@@ -207,8 +207,17 @@ async function searchIngredient(q) {
   } catch(e) {}
   hideSearchStatus();
 
-  // 3. Винаги допълваме автоматично с AI (с кеш по заявка) — без нужда от бутон
-  await aiSearchIngredient(q);
+  // 3. AI само ПРИ НУЖДА — ако базата/USDA нямат добро съвпадение (нищо не съвпада
+  //    точно или не започва с думата). Така не се харчи API за неща, които ги имаме.
+  const hasStrong = currentSuggestions.some(s => {
+    const n = s.name.toLowerCase();
+    return n === ql || n.startsWith(ql);
+  });
+  if (!hasStrong) {
+    await aiSearchIngredient(q);
+  } else {
+    renderSuggestions();
+  }
 }
 
 // AI търсене по заявка — извиква се автоматично след локалните/USDA резултати.

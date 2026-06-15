@@ -1042,6 +1042,34 @@ const FOODS = [
   {n:{bg:'царевица зърно',en:'corn grain',ru:'кукуруза зерно',uk:'кукурудза зерно'},d:{cal:365,prot:9.4,carb:74.3,fat:4.7,fiber:7.3,sugar:0.6,sodium:35}},
   {n:{bg:'пшеница зърно',en:'wheat grain',ru:'пшеница зерно',uk:'пшениця зерно'},d:{cal:340,prot:13.7,carb:72.6,fat:2.5,fiber:12.2,sugar:0.4,sodium:2},alg:['gluten']},
   {n:{bg:'люцерново брашно',en:'alfalfa meal',ru:'люцерновая мука',uk:'люцернове борошно'},d:{cal:230,prot:17.0,carb:40.0,fat:2.5,fiber:25.0,sugar:5.0,sodium:100}},
+  // Подправки и аромати
+  {n:{bg:'канела',en:'cinnamon',ru:'корица',uk:'кориця'},d:{cal:247,prot:4.0,carb:80.6,fat:1.2,fiber:53.1,sugar:2.2,sodium:10}},
+  {n:{bg:'черен пипер',en:'black pepper',ru:'чёрный перец',uk:'чорний перець'},d:{cal:251,prot:10.4,carb:63.9,fat:3.3,fiber:26.5,sugar:0.6,sodium:20}},
+  {n:{bg:'червен пипер млян',en:'paprika',ru:'паприка',uk:'паприка'},d:{cal:282,prot:14.1,carb:54.0,fat:12.9,fiber:34.9,sugar:10.3,sodium:68}},
+  {n:{bg:'кимион',en:'cumin',ru:'тмин',uk:'кмин'},d:{cal:375,prot:17.8,carb:44.2,fat:22.3,fiber:10.5,sugar:2.3,sodium:168}},
+  {n:{bg:'ванилия',en:'vanilla',ru:'ваниль',uk:'ваніль'},d:{cal:288,prot:0.1,carb:12.7,fat:0.1,fiber:0,sugar:12.7,sodium:9}},
+  {n:{bg:'джинджифил',en:'ginger',ru:'имбирь',uk:'імбир'},d:{cal:80,prot:1.8,carb:17.8,fat:0.8,fiber:2.0,sugar:1.7,sodium:13}},
+  {n:{bg:'куркума',en:'turmeric',ru:'куркума',uk:'куркума'},d:{cal:312,prot:9.7,carb:67.1,fat:3.3,fiber:22.7,sugar:3.2,sodium:38}},
+  {n:{bg:'оцет',en:'vinegar',ru:'уксус',uk:'оцет'},d:{cal:21,prot:0,carb:0.9,fat:0,fiber:0,sugar:0.4,sodium:5}},
+  {n:{bg:'горчица',en:'mustard',ru:'горчица',uk:'гірчиця'},d:{cal:66,prot:4.4,carb:5.8,fat:3.3,fiber:3.3,sugar:2.9,sodium:1135},alg:['mustard']},
+  {n:{bg:'доматено пюре',en:'tomato paste',ru:'томатная паста',uk:'томатна паста'},d:{cal:82,prot:4.3,carb:18.9,fat:0.5,fiber:4.1,sugar:12.2,sodium:59}},
+  // Плодове и сушени плодове
+  {n:{bg:'портокал',en:'orange',ru:'апельсин',uk:'апельсин'},d:{cal:47,prot:0.9,carb:11.8,fat:0.1,fiber:2.4,sugar:9.4,sodium:0}},
+  {n:{bg:'лимон',en:'lemon',ru:'лимон',uk:'лимон'},d:{cal:29,prot:1.1,carb:9.3,fat:0.3,fiber:2.8,sugar:2.5,sodium:2}},
+  {n:{bg:'ягоди',en:'strawberry',ru:'клубника',uk:'полуниця'},d:{cal:32,prot:0.7,carb:7.7,fat:0.3,fiber:2.0,sugar:4.9,sodium:1}},
+  {n:{bg:'боровинки',en:'blueberry',ru:'черника',uk:'чорниця'},d:{cal:57,prot:0.7,carb:14.5,fat:0.3,fiber:2.4,sugar:10.0,sodium:1}},
+  {n:{bg:'стафиди',en:'raisins',ru:'изюм',uk:'родзинки'},d:{cal:299,prot:3.1,carb:79.2,fat:0.5,fiber:3.7,sugar:59.2,sodium:11}},
+  {n:{bg:'фурми',en:'dates',ru:'финики',uk:'фініки'},d:{cal:277,prot:1.8,carb:74.0,fat:0.2,fiber:6.7,sugar:66.5,sodium:1}},
+  {n:{bg:'кайсии сушени',en:'dried apricots',ru:'курага',uk:'курага'},d:{cal:241,prot:3.4,carb:62.6,fat:0.5,fiber:7.3,sugar:53.4,sodium:10}},
+  // Други основни
+  {n:{bg:'кокос настърган',en:'desiccated coconut',ru:'кокосовая стружка',uk:'кокосова стружка'},d:{cal:660,prot:6.9,carb:23.7,fat:64.5,fiber:16.3,sugar:7.4,sodium:37}},
+  {n:{bg:'фъстъчено масло',en:'peanut butter',ru:'арахисовая паста',uk:'арахісова паста'},d:{cal:588,prot:25.1,carb:19.6,fat:50.4,fiber:6.0,sugar:9.2,sodium:17},alg:['peanuts']},
+  {n:{bg:'тахан',en:'tahini',ru:'тахини',uk:'тахіні'},d:{cal:595,prot:17.0,carb:21.2,fat:53.8,fiber:9.3,sugar:0.5,sodium:115},alg:['sesame']},
+  {n:{bg:'черен шоколад',en:'dark chocolate',ru:'тёмный шоколад',uk:'чорний шоколад'},d:{cal:546,prot:4.9,carb:59.4,fat:31.3,fiber:7.0,sugar:47.9,sodium:24},alg:['milk']},
+  {n:{bg:'желатин',en:'gelatin',ru:'желатин',uk:'желатин'},d:{cal:335,prot:85.6,carb:0,fat:0.1,fiber:0,sugar:0,sodium:196}},
+  {n:{bg:'бакпулвер',en:'baking powder',ru:'разрыхлитель',uk:'розпушувач'},d:{cal:53,prot:0,carb:27.7,fat:0,fiber:0.2,sugar:0,sodium:10600}},
+  {n:{bg:'нишесте картофено',en:'potato starch',ru:'картофельный крахмал',uk:'картопляний крохмаль'},d:{cal:357,prot:0.1,carb:87.0,fat:0.1,fiber:0,sugar:0,sodium:11}},
+  {n:{bg:'агар-агар',en:'agar agar',ru:'агар-агар',uk:'агар-агар'},d:{cal:26,prot:0.5,carb:6.8,fat:0,fiber:6.3,sugar:0,sodium:7}},
 ];
 
 // Свързваме многоезичните имена с базата за търсене + карта на алергените
