@@ -6,7 +6,7 @@ let currentSuggestions = [];
 let selectedSuggIdx = -1;
 let aiNutritionCache = {};
 let lastQuery = '';
-const SEARCH_T = { bg:'Търси с AI', en:'Search with AI', ru:'Искать с AI', uk:'Шукати з AI' };
+const aiQueryCache = {}; // кеш на AI резултатите по заявка (за да не пита повторно)
  
 // ─── LANGUAGE ─────────────────────────────────────────────────────────────────
 function selectLang(lang) {
@@ -207,49 +207,56 @@ async function searchIngredient(q) {
   } catch(e) {}
   hideSearchStatus();
 
-  // 3. Ако НЯМА никакъв резултат → автоматично AI търсене
-  if (currentSuggestions.length === 0) {
-    await aiSearchIngredient(q);
-  } else {
-    renderSuggestions();
-  }
+  // 3. Винаги допълваме автоматично с AI (с кеш по заявка) — без нужда от бутон
+  await aiSearchIngredient(q);
 }
 
-// AI търсене по заявка — извиква се автоматично (при 0 резултата) или от бутона „Търси с AI"
+// AI търсене по заявка — извиква се автоматично след локалните/USDA резултати.
+// Кешира по заявка (език+дума), за да не пита Anthropic повторно за същото.
 async function aiSearchIngredient(q) {
   const t = T[currentLang];
   const langName = { bg:'Bulgarian', en:'English', ru:'Russian', uk:'Ukrainian' }[currentLang];
-  showSearchStatus(t.searchingAI);
-  try {
-    const res = await fetch('/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        max_tokens: 600,
-        messages: [{ role: 'user', content:
+  const cacheKey = currentLang + '|' + q.toLowerCase();
+  let parsed = aiQueryCache[cacheKey];
+
+  if (!parsed) {
+    showSearchStatus(t.searchingAI);
+    try {
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          max_tokens: 600,
+          messages: [{ role: 'user', content:
 `Provide nutritional data per 100g for this food: "${q}".
 Respond ONLY with a valid JSON array, no markdown, no extra text. Format:
 [{"name":"name in ${langName}","kcal":123,"prot":10.0,"carb":20.0,"fat":5.0,"fiber":2.0,"sugar":3.0,"sodium":50}]
 The "name" MUST be written in ${langName}. Include the most relevant match plus common variants (e.g. raw / cooked / dried) if applicable, up to 4 items. Estimate if exact data unknown.`
-        }]
-      })
-    });
-    const d = await res.json();
-    const text = d.content?.map(b => b.text || '').join('') || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-    const existing = currentSuggestions.map(s => s.name.toLowerCase());
-    parsed.forEach(item => {
-      if (existing.includes(String(item.name).toLowerCase())) return;
-      currentSuggestions.push({
-        name: item.name,
-        kcal: Math.round(item.kcal),
-        source: 'ai',
-        data: { cal:item.kcal, prot:item.prot, carb:item.carb, fat:item.fat, fiber:item.fiber, sugar:item.sugar, sodium:item.sodium }
+          }]
+        })
       });
+      const d = await res.json();
+      const text = d.content?.map(b => b.text || '').join('') || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+      aiQueryCache[cacheKey] = parsed;
+    } catch(e) { parsed = null; }
+    hideSearchStatus();
+  }
+
+  // Ако потребителят е продължил да пише друго, не пипай текущия списък
+  if (q !== lastQuery || !Array.isArray(parsed)) { renderSuggestions(); return; }
+
+  const existing = currentSuggestions.map(s => s.name.toLowerCase());
+  parsed.forEach(item => {
+    if (!item || existing.includes(String(item.name).toLowerCase())) return;
+    currentSuggestions.push({
+      name: item.name,
+      kcal: Math.round(item.kcal),
+      source: 'ai',
+      data: { cal:item.kcal, prot:item.prot, carb:item.carb, fat:item.fat, fiber:item.fiber, sugar:item.sugar, sodium:item.sodium }
     });
-  } catch(e) {}
-  hideSearchStatus();
+  });
   renderSuggestions();
 }
  
@@ -269,14 +276,6 @@ function renderSuggestions() {
       div.onclick = () => selectSuggestion(i);
       el.appendChild(div);
     });
-  }
-  // Винаги — бутон „Търси с AI: '<дума>'" (намира всичко, дори да не е в базата)
-  if (lastQuery && lastQuery.length >= 2) {
-    const ai = document.createElement('div');
-    ai.className = 'suggestion-item ai-search-action';
-    ai.innerHTML = `<span>🔍 ${SEARCH_T[currentLang]}: "<b>${escapeHtml(lastQuery)}</b>"</span>`;
-    ai.onmousedown = (e) => { e.preventDefault(); aiSearchIngredient(lastQuery); };
-    el.appendChild(ai);
   }
   el.style.display = 'block';
 }
@@ -611,7 +610,7 @@ function detectAllergens() {
   const found = new Set();
   ingredients.forEach(ing => {
     const nm = (ing.name || '').toLowerCase();
-    const exact = INGREDIENT_ALLERGENS[nm];
+    const exact = INGREDIENT_ALLERGENS[nm] || (typeof FOOD_ALLERGENS !== 'undefined' && FOOD_ALLERGENS[nm]);
     if (exact) exact.forEach(a => found.add(a));
     for (const [key, kws] of Object.entries(ALLERGEN_KW)) {
       if (kws.some(kw => nm.includes(kw))) {

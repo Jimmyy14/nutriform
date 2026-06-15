@@ -946,3 +946,111 @@ const LOCAL_DB = {
   "лимон":               {cal:29,prot:1.1,carb:9.3,fat:0.3,fiber:2.8,sugar:2.5,sodium:2},
   "портокал":            {cal:47,prot:0.9,carb:11.8,fat:0.1,fiber:2.4,sugar:9.4,sodium:0},
 };
+
+// ─── МНОГОЕЗИЧНА БАЗА (име на 4 езика + хранителни данни + алергени) ──────────
+// n = имена {bg,en,ru,uk}; d = данни на 100 г; alg = алергени (по избор)
+const FOODS = [
+  // Брашна и зърнени
+  {n:{bg:'пшенично брашно',en:'wheat flour',ru:'пшеничная мука',uk:'пшеничне борошно'},d:{cal:364,prot:10.3,carb:76.3,fat:1.0,fiber:2.7,sugar:0.3,sodium:2},alg:['gluten']},
+  {n:{bg:'пълнозърнесто брашно',en:'whole wheat flour',ru:'цельнозерновая мука',uk:'цільнозернове борошно'},d:{cal:340,prot:13.2,carb:72.0,fat:1.9,fiber:10.7,sugar:0.4,sodium:2},alg:['gluten']},
+  {n:{bg:'ръжено брашно',en:'rye flour',ru:'ржаная мука',uk:'житнє борошно'},d:{cal:325,prot:8.5,carb:68.0,fat:1.7,fiber:14.6,sugar:1.0,sodium:1},alg:['gluten']},
+  {n:{bg:'овесено брашно',en:'oat flour',ru:'овсяная мука',uk:'вівсяне борошно'},d:{cal:379,prot:13.0,carb:65.7,fat:6.9,fiber:9.4,sugar:1.0,sodium:3},alg:['gluten']},
+  {n:{bg:'царевично брашно',en:'corn flour',ru:'кукурузная мука',uk:'кукурудзяне борошно'},d:{cal:361,prot:6.9,carb:76.8,fat:3.9,fiber:7.3,sugar:0.6,sodium:5}},
+  {n:{bg:'оризово брашно',en:'rice flour',ru:'рисовая мука',uk:'рисове борошно'},d:{cal:366,prot:6.0,carb:80.1,fat:1.4,fiber:2.4,sugar:0.1,sodium:0}},
+  {n:{bg:'елдено брашно',en:'buckwheat flour',ru:'гречневая мука',uk:'гречане борошно'},d:{cal:335,prot:12.6,carb:70.6,fat:3.1,fiber:10.0,sugar:0,sodium:11}},
+  {n:{bg:'нахутено брашно',en:'chickpea flour',ru:'нутовая мука',uk:'нутове борошно'},d:{cal:387,prot:22.4,carb:57.8,fat:6.7,fiber:10.8,sugar:10.9,sodium:64}},
+  {n:{bg:'грис',en:'semolina',ru:'манная крупа',uk:'манна крупа'},d:{cal:360,prot:12.7,carb:72.8,fat:1.1,fiber:3.9,sugar:0,sodium:1},alg:['gluten']},
+  {n:{bg:'нишесте',en:'cornstarch',ru:'крахмал',uk:'крохмаль'},d:{cal:381,prot:0.3,carb:91.3,fat:0.1,fiber:0.9,sugar:0,sodium:9}},
+  {n:{bg:'овес',en:'oats',ru:'овёс',uk:'овес'},d:{cal:389,prot:16.9,carb:66.3,fat:6.9,fiber:10.6,sugar:0,sodium:2},alg:['gluten']},
+  {n:{bg:'ориз',en:'rice',ru:'рис',uk:'рис'},d:{cal:365,prot:7.1,carb:80.0,fat:0.7,fiber:1.3,sugar:0,sodium:5}},
+  {n:{bg:'киноа',en:'quinoa',ru:'киноа',uk:'кіноа'},d:{cal:368,prot:14.1,carb:64.2,fat:6.1,fiber:7.0,sugar:0,sodium:5}},
+  {n:{bg:'булгур',en:'bulgur',ru:'булгур',uk:'булгур'},d:{cal:342,prot:12.3,carb:75.9,fat:1.3,fiber:18.3,sugar:0.4,sodium:17},alg:['gluten']},
+  {n:{bg:'ечемик',en:'barley',ru:'ячмень',uk:'ячмінь'},d:{cal:354,prot:12.5,carb:73.5,fat:2.3,fiber:17.3,sugar:0.8,sodium:12},alg:['gluten']},
+  {n:{bg:'спагети',en:'pasta',ru:'макароны',uk:'макарони'},d:{cal:371,prot:13.0,carb:74.7,fat:1.5,fiber:3.2,sugar:2.7,sodium:6},alg:['gluten']},
+  // Мазнини
+  {n:{bg:'слънчогледово олио',en:'sunflower oil',ru:'подсолнечное масло',uk:'соняшникова олія'},d:{cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0}},
+  {n:{bg:'зехтин',en:'olive oil',ru:'оливковое масло',uk:'оливкова олія'},d:{cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:2}},
+  {n:{bg:'рапично олио',en:'rapeseed oil',ru:'рапсовое масло',uk:'ріпакова олія'},d:{cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0}},
+  {n:{bg:'палмово масло',en:'palm oil',ru:'пальмовое масло',uk:'пальмова олія'},d:{cal:884,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0}},
+  {n:{bg:'краве масло',en:'butter',ru:'сливочное масло',uk:'вершкове масло'},d:{cal:717,prot:0.9,carb:0.1,fat:81.1,fiber:0,sugar:0.1,sodium:11},alg:['milk']},
+  {n:{bg:'маргарин',en:'margarine',ru:'маргарин',uk:'маргарин'},d:{cal:717,prot:0.2,carb:0.7,fat:80.5,fiber:0,sugar:0,sodium:751}},
+  {n:{bg:'свинска мас',en:'lard',ru:'свиной жир',uk:'свинячий жир'},d:{cal:902,prot:0,carb:0,fat:100,fiber:0,sugar:0,sodium:0}},
+  // Млечни
+  {n:{bg:'прясно мляко',en:'milk',ru:'молоко',uk:'молоко'},d:{cal:61,prot:3.2,carb:4.8,fat:3.3,fiber:0,sugar:5.1,sodium:43},alg:['milk']},
+  {n:{bg:'сухо мляко',en:'milk powder',ru:'сухое молоко',uk:'сухе молоко'},d:{cal:496,prot:26.3,carb:38.4,fat:26.7,fiber:0,sugar:38.4,sodium:371},alg:['milk']},
+  {n:{bg:'сметана',en:'cream',ru:'сливки',uk:'вершки'},d:{cal:340,prot:2.1,carb:2.8,fat:36.0,fiber:0,sugar:2.9,sodium:27},alg:['milk']},
+  {n:{bg:'заквасена сметана',en:'sour cream',ru:'сметана',uk:'сметана'},d:{cal:198,prot:2.4,carb:4.6,fat:19.4,fiber:0,sugar:3.4,sodium:53},alg:['milk']},
+  {n:{bg:'кисело мляко',en:'yogurt',ru:'йогурт',uk:'йогурт'},d:{cal:61,prot:3.5,carb:4.7,fat:3.3,fiber:0,sugar:4.7,sodium:46},alg:['milk']},
+  {n:{bg:'извара',en:'cottage cheese',ru:'творог',uk:'сир кисломолочний'},d:{cal:98,prot:11.1,carb:3.4,fat:4.3,fiber:0,sugar:2.7,sodium:364},alg:['milk']},
+  {n:{bg:'сирене',en:'white cheese',ru:'брынза',uk:'бринза'},d:{cal:264,prot:14.2,carb:0.5,fat:21.3,fiber:0,sugar:0.5,sodium:1116},alg:['milk']},
+  {n:{bg:'кашкавал',en:'yellow cheese',ru:'твёрдый сыр',uk:'твердий сир'},d:{cal:356,prot:24.5,carb:1.3,fat:28.0,fiber:0,sugar:0.5,sodium:680},alg:['milk']},
+  {n:{bg:'извара протеин',en:'whey protein',ru:'сывороточный протеин',uk:'сироватковий протеїн'},d:{cal:352,prot:75.0,carb:9.0,fat:3.5,fiber:0,sugar:5.0,sodium:400},alg:['milk']},
+  // Яйца и подсладители
+  {n:{bg:'яйца',en:'eggs',ru:'яйца',uk:'яйця'},d:{cal:143,prot:12.6,carb:0.7,fat:9.5,fiber:0,sugar:0.4,sodium:142},alg:['eggs']},
+  {n:{bg:'захар',en:'sugar',ru:'сахар',uk:'цукор'},d:{cal:387,prot:0,carb:99.8,fat:0,fiber:0,sugar:99.8,sodium:1}},
+  {n:{bg:'кафява захар',en:'brown sugar',ru:'коричневый сахар',uk:'коричневий цукор'},d:{cal:380,prot:0,carb:98.1,fat:0,fiber:0,sugar:97.0,sodium:28}},
+  {n:{bg:'мед',en:'honey',ru:'мёд',uk:'мед'},d:{cal:304,prot:0.3,carb:82.4,fat:0,fiber:0.2,sugar:82.1,sodium:4}},
+  {n:{bg:'глюкозен сироп',en:'glucose syrup',ru:'глюкозный сироп',uk:'глюкозний сироп'},d:{cal:315,prot:0,carb:85.0,fat:0,fiber:0,sugar:85.0,sodium:40}},
+  {n:{bg:'сол',en:'salt',ru:'соль',uk:'сіль'},d:{cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:38758}},
+  {n:{bg:'мая',en:'yeast',ru:'дрожжи',uk:'дріжджі'},d:{cal:325,prot:40.4,carb:41.2,fat:7.6,fiber:26.9,sugar:0,sodium:51}},
+  {n:{bg:'бакпулвер',en:'baking powder',ru:'разрыхлитель',uk:'розпушувач'},d:{cal:53,prot:0,carb:27.7,fat:0,fiber:0.2,sugar:0,sodium:10600}},
+  {n:{bg:'сода бикарбонат',en:'baking soda',ru:'сода пищевая',uk:'сода харчова'},d:{cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:27400}},
+  {n:{bg:'какао',en:'cocoa powder',ru:'какао-порошок',uk:'какао-порошок'},d:{cal:228,prot:19.6,carb:57.9,fat:13.7,fiber:37.0,sugar:1.7,sodium:21}},
+  // Месо и риба
+  {n:{bg:'пилешко гърди',en:'chicken breast',ru:'куриная грудка',uk:'куряча грудка'},d:{cal:165,prot:31.0,carb:0,fat:3.6,fiber:0,sugar:0,sodium:74}},
+  {n:{bg:'пилешко бутчета',en:'chicken thigh',ru:'куриное бедро',uk:'куряче стегно'},d:{cal:209,prot:18.0,carb:0,fat:15.0,fiber:0,sugar:0,sodium:84}},
+  {n:{bg:'свинско месо',en:'pork',ru:'свинина',uk:'свинина'},d:{cal:242,prot:27.0,carb:0,fat:14.0,fiber:0,sugar:0,sodium:62}},
+  {n:{bg:'телешко месо',en:'beef',ru:'говядина',uk:'яловичина'},d:{cal:250,prot:26.1,carb:0,fat:15.4,fiber:0,sugar:0,sodium:72}},
+  {n:{bg:'кайма смес',en:'minced meat',ru:'фарш',uk:'фарш'},d:{cal:243,prot:18.0,carb:0,fat:19.0,fiber:0,sugar:0,sodium:75}},
+  {n:{bg:'пуешко месо',en:'turkey',ru:'индейка',uk:'індичка'},d:{cal:189,prot:28.6,carb:0,fat:7.4,fiber:0,sugar:0,sodium:103}},
+  {n:{bg:'сьомга',en:'salmon',ru:'лосось',uk:'лосось'},d:{cal:208,prot:20.4,carb:0,fat:13.4,fiber:0,sugar:0,sodium:59},alg:['fish']},
+  {n:{bg:'риба тон',en:'tuna',ru:'тунец',uk:'тунець'},d:{cal:144,prot:23.6,carb:0,fat:4.9,fiber:0,sugar:0,sodium:47},alg:['fish']},
+  // Зеленчуци
+  {n:{bg:'картофи',en:'potato',ru:'картофель',uk:'картопля'},d:{cal:77,prot:2.0,carb:17.5,fat:0.1,fiber:2.2,sugar:0.8,sodium:6}},
+  {n:{bg:'домати',en:'tomato',ru:'помидор',uk:'помідор'},d:{cal:18,prot:0.9,carb:3.9,fat:0.2,fiber:1.2,sugar:2.6,sodium:5}},
+  {n:{bg:'краставица',en:'cucumber',ru:'огурец',uk:'огірок'},d:{cal:15,prot:0.7,carb:3.6,fat:0.1,fiber:0.5,sugar:1.7,sodium:2}},
+  {n:{bg:'лук',en:'onion',ru:'лук',uk:'цибуля'},d:{cal:40,prot:1.1,carb:9.3,fat:0.1,fiber:1.7,sugar:4.2,sodium:4}},
+  {n:{bg:'чесън',en:'garlic',ru:'чеснок',uk:'часник'},d:{cal:149,prot:6.4,carb:33.1,fat:0.5,fiber:2.1,sugar:1.0,sodium:17}},
+  {n:{bg:'моркови',en:'carrot',ru:'морковь',uk:'морква'},d:{cal:41,prot:0.9,carb:9.6,fat:0.2,fiber:2.8,sugar:4.7,sodium:69}},
+  {n:{bg:'червен пипер',en:'bell pepper',ru:'болгарский перец',uk:'болгарський перець'},d:{cal:31,prot:1.0,carb:6.0,fat:0.3,fiber:2.1,sugar:4.2,sodium:4}},
+  {n:{bg:'тиква',en:'pumpkin',ru:'тыква',uk:'гарбуз'},d:{cal:26,prot:1.0,carb:6.5,fat:0.1,fiber:0.5,sugar:2.8,sodium:1}},
+  {n:{bg:'спанак',en:'spinach',ru:'шпинат',uk:'шпинат'},d:{cal:23,prot:2.9,carb:3.6,fat:0.4,fiber:2.2,sugar:0.4,sodium:79}},
+  {n:{bg:'зеле',en:'cabbage',ru:'капуста',uk:'капуста'},d:{cal:25,prot:1.3,carb:5.8,fat:0.1,fiber:2.5,sugar:3.2,sodium:18}},
+  {n:{bg:'гъби',en:'mushrooms',ru:'грибы',uk:'гриби'},d:{cal:22,prot:3.1,carb:3.3,fat:0.3,fiber:1.0,sugar:2.0,sodium:5}},
+  {n:{bg:'грах',en:'peas',ru:'горох',uk:'горох'},d:{cal:81,prot:5.4,carb:14.5,fat:0.4,fiber:5.7,sugar:5.7,sodium:5}},
+  {n:{bg:'целина',en:'celery',ru:'сельдерей',uk:'селера'},d:{cal:16,prot:0.7,carb:3.0,fat:0.2,fiber:1.6,sugar:1.3,sodium:80},alg:['celery']},
+  // Плодове, ядки, семена, бобови
+  {n:{bg:'ябълка',en:'apple',ru:'яблоко',uk:'яблуко'},d:{cal:52,prot:0.3,carb:13.8,fat:0.2,fiber:2.4,sugar:10.4,sodium:1}},
+  {n:{bg:'банан',en:'banana',ru:'банан',uk:'банан'},d:{cal:89,prot:1.1,carb:22.8,fat:0.3,fiber:2.6,sugar:12.2,sodium:1}},
+  {n:{bg:'орехи',en:'walnuts',ru:'грецкие орехи',uk:'волоські горіхи'},d:{cal:654,prot:15.2,carb:13.7,fat:65.2,fiber:6.7,sugar:2.6,sodium:2},alg:['nuts']},
+  {n:{bg:'бадеми',en:'almonds',ru:'миндаль',uk:'мигдаль'},d:{cal:579,prot:21.2,carb:21.6,fat:49.9,fiber:12.5,sugar:4.4,sodium:1},alg:['nuts']},
+  {n:{bg:'лешници',en:'hazelnuts',ru:'фундук',uk:'фундук'},d:{cal:628,prot:15.0,carb:16.7,fat:60.8,fiber:9.7,sugar:4.3,sodium:0},alg:['nuts']},
+  {n:{bg:'фъстъци',en:'peanuts',ru:'арахис',uk:'арахіс'},d:{cal:567,prot:25.8,carb:16.1,fat:49.2,fiber:8.5,sugar:4.7,sodium:18},alg:['peanuts']},
+  {n:{bg:'слънчогледови семки',en:'sunflower seeds',ru:'семена подсолнечника',uk:'насіння соняшнику'},d:{cal:584,prot:20.8,carb:20.0,fat:51.5,fiber:8.6,sugar:2.6,sodium:9}},
+  {n:{bg:'сусам',en:'sesame seeds',ru:'кунжут',uk:'кунжут'},d:{cal:573,prot:17.7,carb:23.5,fat:49.7,fiber:11.8,sugar:0.3,sodium:11},alg:['sesame']},
+  {n:{bg:'ленено семе',en:'flaxseed',ru:'семена льна',uk:'насіння льону'},d:{cal:534,prot:18.3,carb:28.9,fat:42.2,fiber:27.3,sugar:1.6,sodium:30}},
+  {n:{bg:'леща',en:'lentils',ru:'чечевица',uk:'сочевиця'},d:{cal:116,prot:9.0,carb:20.1,fat:0.4,fiber:7.9,sugar:1.8,sodium:238}},
+  {n:{bg:'нахут',en:'chickpeas',ru:'нут',uk:'нут'},d:{cal:164,prot:8.9,carb:27.4,fat:2.6,fiber:7.6,sugar:4.8,sodium:24}},
+  {n:{bg:'боб',en:'beans',ru:'фасоль',uk:'квасоля'},d:{cal:127,prot:8.7,carb:22.8,fat:0.5,fiber:6.4,sugar:0.3,sodium:1}},
+  {n:{bg:'соя',en:'soybeans',ru:'соя',uk:'соя'},d:{cal:446,prot:36.5,carb:30.2,fat:19.9,fiber:9.3,sugar:7.3,sodium:2},alg:['soy']},
+  {n:{bg:'тофу',en:'tofu',ru:'тофу',uk:'тофу'},d:{cal:76,prot:8.1,carb:1.9,fat:4.8,fiber:0.3,sugar:0.5,sodium:7},alg:['soy']},
+  // Суровини за фуражи
+  {n:{bg:'соев шрот',en:'soybean meal',ru:'соевый шрот',uk:'соєвий шрот'},d:{cal:380,prot:47.0,carb:30.0,fat:2.0,fiber:7.0,sugar:8.0,sodium:3},alg:['soy']},
+  {n:{bg:'слънчогледов шрот',en:'sunflower meal',ru:'подсолнечный шрот',uk:'соняшниковий шрот'},d:{cal:350,prot:34.0,carb:23.0,fat:2.5,fiber:21.0,sugar:5.0,sodium:20}},
+  {n:{bg:'рибно брашно',en:'fish meal',ru:'рыбная мука',uk:'рибне борошно'},d:{cal:380,prot:62.0,carb:0,fat:9.0,fiber:0,sugar:0,sodium:1000},alg:['fish']},
+  {n:{bg:'месокостно брашно',en:'meat and bone meal',ru:'мясокостная мука',uk:"м'ясо-кісткове борошно"},d:{cal:370,prot:50.0,carb:0,fat:10.0,fiber:0,sugar:0,sodium:800}},
+  {n:{bg:'царевица зърно',en:'corn grain',ru:'кукуруза зерно',uk:'кукурудза зерно'},d:{cal:365,prot:9.4,carb:74.3,fat:4.7,fiber:7.3,sugar:0.6,sodium:35}},
+  {n:{bg:'пшеница зърно',en:'wheat grain',ru:'пшеница зерно',uk:'пшениця зерно'},d:{cal:340,prot:13.7,carb:72.6,fat:2.5,fiber:12.2,sugar:0.4,sodium:2},alg:['gluten']},
+  {n:{bg:'люцерново брашно',en:'alfalfa meal',ru:'люцерновая мука',uk:'люцернове борошно'},d:{cal:230,prot:17.0,carb:40.0,fat:2.5,fiber:25.0,sugar:5.0,sodium:100}},
+];
+
+// Свързваме многоезичните имена с базата за търсене + карта на алергените
+const FOOD_ALLERGENS = {};
+FOODS.forEach(f => {
+  for (const lang in f.n) {
+    const nm = (f.n[lang] || '').toLowerCase();
+    if (!nm) continue;
+    LOCAL_DB[nm] = f.d;
+    if (f.alg) FOOD_ALLERGENS[nm] = f.alg;
+  }
+});
