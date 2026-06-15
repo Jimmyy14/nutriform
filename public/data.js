@@ -1129,11 +1129,13 @@ const FOODS = [
 
 // Свързваме многоезичните имена с базата за търсене + карта на алергените
 const FOOD_ALLERGENS = {};
+const FOOD_NAME_SET = new Set(); // всички имена от FOODS (за да не дублираме legacy записите)
 FOODS.forEach(f => {
   for (const lang in f.n) {
     const nm = (f.n[lang] || '').toLowerCase();
     if (!nm) continue;
     LOCAL_DB[nm] = f.d;
+    FOOD_NAME_SET.add(nm);
     if (f.alg) FOOD_ALLERGENS[nm] = f.alg;
   }
 });

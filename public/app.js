@@ -162,18 +162,32 @@ async function searchIngredient(q) {
   const ql = q.toLowerCase();
   currentSuggestions = [];
 
-  // 1. Local DB — подредени по релевантност (точно > започва с > съдържа, после по дължина), до 12
-  currentSuggestions = Object.keys(LOCAL_DB)
-    .filter(k => k.toLowerCase().includes(ql))
-    .sort((a, b) => {
-      const al = a.toLowerCase(), bl = b.toLowerCase();
-      const ar = al === ql ? 0 : al.startsWith(ql) ? 1 : 2;
-      const br = bl === ql ? 0 : bl.startsWith(ql) ? 1 : 2;
-      return ar - br || al.length - bl.length;
-    })
-    .slice(0, 12)
-    .map(k => ({ name: k, kcal: LOCAL_DB[k].cal, source: 'local', data: LOCAL_DB[k] }));
-  renderSuggestions(); // показва локалните + бутона „Търси с AI"
+  // 1. Локални съвпадения — двуезично: име на избрания език + английско (универсално).
+  //    Първо многоезичните продукти (FOODS), после старите записи, без дубли.
+  const matches = [];
+  FOODS.forEach(f => {
+    const prim = f.n[currentLang] || f.n.en || '';
+    const en = f.n.en || '';
+    const cand = [prim, en].filter(Boolean).map(x => x.toLowerCase());
+    if (!cand.some(n => n.includes(ql))) return;
+    const display = (currentLang !== 'en' && en && en.toLowerCase() !== prim.toLowerCase())
+      ? `${prim} (${en})` : prim;
+    matches.push({ name: prim, display, kcal: f.d.cal, source: 'local', data: f.d, _names: cand });
+  });
+  Object.keys(LOCAL_DB).forEach(k => {
+    const kl = k.toLowerCase();
+    if (FOOD_NAME_SET.has(kl)) return;          // вече покрито от FOODS
+    if (!kl.includes(ql)) return;
+    matches.push({ name: k, display: k, kcal: LOCAL_DB[k].cal, source: 'local', data: LOCAL_DB[k], _names: [kl] });
+  });
+  matches.sort((a, b) => {
+    const al = a.name.toLowerCase(), bl = b.name.toLowerCase();
+    const ar = al === ql ? 0 : al.startsWith(ql) ? 1 : 2;
+    const br = bl === ql ? 0 : bl.startsWith(ql) ? 1 : 2;
+    return ar - br || al.length - bl.length;
+  });
+  currentSuggestions = matches.slice(0, 14);
+  renderSuggestions();
 
   // 2. USDA search (добавя към локалните)
   showSearchStatus(t.searchingUSDA);
@@ -196,7 +210,7 @@ async function searchIngredient(q) {
           else if (n.nutrientId === 1093 || n.nutrientName?.includes('Sodium')) nutrients.sodium = v;
         });
         ['cal','prot','carb','fat','fiber','sugar','sodium'].forEach(k => nutrients[k] = nutrients[k] || 0);
-        return { name: f.description, kcal: Math.round(nutrients.cal), source: 'usda', data: nutrients };
+        return { name: f.description, kcal: Math.round(nutrients.cal), source: 'usda', data: nutrients, _names: [String(f.description).toLowerCase()] };
       });
       const allNames = currentSuggestions.map(s => s.name.toLowerCase());
       usdaItems.forEach(u => {
@@ -209,10 +223,9 @@ async function searchIngredient(q) {
 
   // 3. AI само ПРИ НУЖДА — ако базата/USDA нямат добро съвпадение (нищо не съвпада
   //    точно или не започва с думата). Така не се харчи API за неща, които ги имаме.
-  const hasStrong = currentSuggestions.some(s => {
-    const n = s.name.toLowerCase();
-    return n === ql || n.startsWith(ql);
-  });
+  const hasStrong = currentSuggestions.some(s =>
+    (s._names || [s.name.toLowerCase()]).some(n => n === ql || n.startsWith(ql))
+  );
   if (!hasStrong) {
     await aiSearchIngredient(q);
   } else {
@@ -281,7 +294,7 @@ function renderSuggestions() {
       div.className = 'suggestion-item' + (i === selectedSuggIdx ? ' selected' : '');
       const srcClass = s.source === 'usda' ? 'src-usda' : s.source === 'ai' ? 'src-ai' : 'src-local';
       const srcLabel = s.source === 'usda' ? t.srcUSDA : s.source === 'ai' ? t.srcAI : t.srcLocal;
-      div.innerHTML = `<span class="sug-name">${s.name} <span class="suggestion-source ${srcClass}">${srcLabel}</span></span><span class="sug-kcal">${s.kcal} kcal/100g</span>`;
+      div.innerHTML = `<span class="sug-name">${s.display || s.name} <span class="suggestion-source ${srcClass}">${srcLabel}</span></span><span class="sug-kcal">${s.kcal} kcal/100g</span>`;
       div.onclick = () => selectSuggestion(i);
       el.appendChild(div);
     });
