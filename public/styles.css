@@ -21,7 +21,8 @@
   --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.5; }
+html { background: var(--bg); overscroll-behavior: none; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.5; overscroll-behavior: none; }
  
 /* LANG SCREEN */
 #lang-screen {
@@ -64,6 +65,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
  
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.25rem; }
 .card:last-child { margin-bottom: 0; }
+/* картата „Съставки" не бива да отрязва падащото меню с предложенията */
+.card-ingredients { overflow: visible; }
+.card-ingredients > .card-header { border-top-left-radius: var(--radius); border-top-right-radius: var(--radius); }
 .card-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: var(--surface); }
 .card-header h2 { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.01em; }
 .card-body { padding: 1.25rem; }
