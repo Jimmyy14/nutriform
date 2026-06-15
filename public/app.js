@@ -360,6 +360,14 @@ function removeIng(idx) {
   ingredients.splice(idx, 1);
   renderIngredients();
 }
+
+// Промяна на грамажа на вече въведена съставка (без триене и въвеждане наново)
+function updateAmount(idx, val) {
+  const amount = parseFloat(val);
+  if (isNaN(amount) || amount < 0) { renderIngredients(); return; }
+  ingredients[idx].amount = amount;
+  renderIngredients();
+}
  
 function getNutrition(name) {
   const key = name.toLowerCase();
@@ -396,7 +404,7 @@ function renderIngredients() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><div class="ing-name-cell">${ing.name}<span class="badge ${srcClass}">${srcLabel}</span></div></td>
-      <td style="text-align:right">${ing.amount}${t.g}</td>
+      <td style="text-align:right; white-space:nowrap"><input class="amt-edit" type="number" min="0" step="0.1" value="${ing.amount}" onchange="updateAmount(${idx}, this.value)" onfocus="this.select()">${t.g}</td>
       <td style="text-align:right; color:var(--text2)">${kcal}</td>
       <td style="text-align:right"><button class="del-btn" onclick="removeIng(${idx})">✕</button></td>`;
     tbody.appendChild(tr);
