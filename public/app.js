@@ -5,6 +5,8 @@ let searchTimeout = null;
 let currentSuggestions = [];
 let selectedSuggIdx = -1;
 let aiNutritionCache = {};
+let lastQuery = '';
+const SEARCH_T = { bg:'Търси с AI', en:'Search with AI', ru:'Искать с AI', uk:'Шукати з AI' };
  
 // ─── LANGUAGE ─────────────────────────────────────────────────────────────────
 function selectLang(lang) {
@@ -156,24 +158,24 @@ function onIngSearch() {
  
 async function searchIngredient(q) {
   const t = T[currentLang];
+  lastQuery = q;
+  const ql = q.toLowerCase();
   currentSuggestions = [];
- 
-  // 1. Local DB match
-  const localMatches = Object.keys(LOCAL_DB).filter(k =>
-    k.toLowerCase().includes(q.toLowerCase())
-  ).slice(0, 5).map(k => ({
-    name: k,
-    kcal: LOCAL_DB[k].cal,
-    source: 'local',
-    data: LOCAL_DB[k]
-  }));
- 
-  if (localMatches.length > 0) {
-    currentSuggestions = localMatches;
-    renderSuggestions();
-  }
- 
-  // 2. USDA search
+
+  // 1. Local DB — подредени по релевантност (точно > започва с > съдържа, после по дължина), до 12
+  currentSuggestions = Object.keys(LOCAL_DB)
+    .filter(k => k.toLowerCase().includes(ql))
+    .sort((a, b) => {
+      const al = a.toLowerCase(), bl = b.toLowerCase();
+      const ar = al === ql ? 0 : al.startsWith(ql) ? 1 : 2;
+      const br = bl === ql ? 0 : bl.startsWith(ql) ? 1 : 2;
+      return ar - br || al.length - bl.length;
+    })
+    .slice(0, 12)
+    .map(k => ({ name: k, kcal: LOCAL_DB[k].cal, source: 'local', data: LOCAL_DB[k] }));
+  renderSuggestions(); // показва локалните + бутона „Търси с AI"
+
+  // 2. USDA search (добавя към локалните)
   showSearchStatus(t.searchingUSDA);
   try {
     const res = await fetch(
@@ -193,95 +195,94 @@ async function searchIngredient(q) {
           else if (n.nutrientId === 2000 || n.nutrientName?.includes('Sugars')) nutrients.sugar = v;
           else if (n.nutrientId === 1093 || n.nutrientName?.includes('Sodium')) nutrients.sodium = v;
         });
-        nutrients.cal = nutrients.cal || 0;
-        nutrients.prot = nutrients.prot || 0;
-        nutrients.carb = nutrients.carb || 0;
-        nutrients.fat = nutrients.fat || 0;
-        nutrients.fiber = nutrients.fiber || 0;
-        nutrients.sugar = nutrients.sugar || 0;
-        nutrients.sodium = nutrients.sodium || 0;
-        return {
-          name: f.description,
-          kcal: Math.round(nutrients.cal),
-          source: 'usda',
-          data: nutrients
-        };
+        ['cal','prot','carb','fat','fiber','sugar','sodium'].forEach(k => nutrients[k] = nutrients[k] || 0);
+        return { name: f.description, kcal: Math.round(nutrients.cal), source: 'usda', data: nutrients };
       });
-      // Merge: keep local, add USDA that aren't duplicates
       const allNames = currentSuggestions.map(s => s.name.toLowerCase());
       usdaItems.forEach(u => {
-        if (!allNames.some(n => n.includes(u.name.toLowerCase().substring(0, 8)))) {
-          currentSuggestions.push(u);
-        }
+        if (!allNames.some(n => n.includes(u.name.toLowerCase().substring(0, 8)))) currentSuggestions.push(u);
       });
       renderSuggestions();
-      hideSearchStatus();
-      return;
     }
   } catch(e) {}
- 
-  // 3. AI fallback if no results yet
-  if (currentSuggestions.length === 0) {
-    showSearchStatus(t.searchingAI);
-    {
-      try {
-        const res = await fetch('/api/claude', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            max_tokens: 500,
-            messages: [{role: 'user', content:
-              `Provide nutritional data per 100g for this food: "${q}".
-Respond ONLY with a valid JSON array, no markdown, no extra text. Format:
-[{"name":"English name","kcal":123,"prot":10.0,"carb":20.0,"fat":5.0,"fiber":2.0,"sugar":3.0,"sodium":50}]
-Include 1-3 most relevant matches. Estimate if exact data unknown.`
-            }]
-          })
-        });
-        const d = await res.json();
-        const text = d.content?.map(b => b.text||'').join('') || '';
-        const clean = text.replace(/```json|```/g,'').trim();
-        const parsed = JSON.parse(clean);
-        parsed.forEach(item => {
-          currentSuggestions.push({
-            name: item.name,
-            kcal: Math.round(item.kcal),
-            source: 'ai',
-            data: {cal:item.kcal, prot:item.prot, carb:item.carb, fat:item.fat, fiber:item.fiber, sugar:item.sugar, sodium:item.sodium}
-          });
-        });
-      } catch(e) {}
-    }
-    if (currentSuggestions.length === 0) {
-      renderNoResults();
-    } else {
-      renderSuggestions();
-    }
-  }
   hideSearchStatus();
+
+  // 3. Ако НЯМА никакъв резултат → автоматично AI търсене
+  if (currentSuggestions.length === 0) {
+    await aiSearchIngredient(q);
+  } else {
+    renderSuggestions();
+  }
+}
+
+// AI търсене по заявка — извиква се автоматично (при 0 резултата) или от бутона „Търси с AI"
+async function aiSearchIngredient(q) {
+  const t = T[currentLang];
+  const langName = { bg:'Bulgarian', en:'English', ru:'Russian', uk:'Ukrainian' }[currentLang];
+  showSearchStatus(t.searchingAI);
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        max_tokens: 600,
+        messages: [{ role: 'user', content:
+`Provide nutritional data per 100g for this food: "${q}".
+Respond ONLY with a valid JSON array, no markdown, no extra text. Format:
+[{"name":"name in ${langName}","kcal":123,"prot":10.0,"carb":20.0,"fat":5.0,"fiber":2.0,"sugar":3.0,"sodium":50}]
+The "name" MUST be written in ${langName}. Include the most relevant match plus common variants (e.g. raw / cooked / dried) if applicable, up to 4 items. Estimate if exact data unknown.`
+        }]
+      })
+    });
+    const d = await res.json();
+    const text = d.content?.map(b => b.text || '').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    const existing = currentSuggestions.map(s => s.name.toLowerCase());
+    parsed.forEach(item => {
+      if (existing.includes(String(item.name).toLowerCase())) return;
+      currentSuggestions.push({
+        name: item.name,
+        kcal: Math.round(item.kcal),
+        source: 'ai',
+        data: { cal:item.kcal, prot:item.prot, carb:item.carb, fat:item.fat, fiber:item.fiber, sugar:item.sugar, sodium:item.sodium }
+      });
+    });
+  } catch(e) {}
+  hideSearchStatus();
+  renderSuggestions();
 }
  
 function renderSuggestions() {
   const t = T[currentLang];
   const el = document.getElementById('suggestions');
-  if (currentSuggestions.length === 0) { renderNoResults(); return; }
   el.innerHTML = '';
-  currentSuggestions.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'suggestion-item' + (i === selectedSuggIdx ? ' selected' : '');
-    const srcClass = s.source === 'usda' ? 'src-usda' : s.source === 'ai' ? 'src-ai' : 'src-local';
-    const srcLabel = s.source === 'usda' ? t.srcUSDA : s.source === 'ai' ? t.srcAI : t.srcLocal;
-    div.innerHTML = `<span class="sug-name">${s.name} <span class="suggestion-source ${srcClass}">${srcLabel}</span></span><span class="sug-kcal">${s.kcal} kcal/100g</span>`;
-    div.onclick = () => selectSuggestion(i);
-    el.appendChild(div);
-  });
+  if (currentSuggestions.length === 0) {
+    el.innerHTML = `<div class="no-results">${t.noResults}</div>`;
+  } else {
+    currentSuggestions.forEach((s, i) => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item' + (i === selectedSuggIdx ? ' selected' : '');
+      const srcClass = s.source === 'usda' ? 'src-usda' : s.source === 'ai' ? 'src-ai' : 'src-local';
+      const srcLabel = s.source === 'usda' ? t.srcUSDA : s.source === 'ai' ? t.srcAI : t.srcLocal;
+      div.innerHTML = `<span class="sug-name">${s.name} <span class="suggestion-source ${srcClass}">${srcLabel}</span></span><span class="sug-kcal">${s.kcal} kcal/100g</span>`;
+      div.onclick = () => selectSuggestion(i);
+      el.appendChild(div);
+    });
+  }
+  // Винаги — бутон „Търси с AI: '<дума>'" (намира всичко, дори да не е в базата)
+  if (lastQuery && lastQuery.length >= 2) {
+    const ai = document.createElement('div');
+    ai.className = 'suggestion-item ai-search-action';
+    ai.innerHTML = `<span>🔍 ${SEARCH_T[currentLang]}: "<b>${escapeHtml(lastQuery)}</b>"</span>`;
+    ai.onmousedown = (e) => { e.preventDefault(); aiSearchIngredient(lastQuery); };
+    el.appendChild(ai);
+  }
   el.style.display = 'block';
 }
- 
+
 function renderNoResults() {
-  const el = document.getElementById('suggestions');
-  el.innerHTML = `<div class="no-results">${T[currentLang].noResults}</div>`;
-  el.style.display = 'block';
+  renderSuggestions();
 }
  
 function hideSuggestions() {
