@@ -482,6 +482,7 @@ function updateResults() {
   if (!r) {
     ['r-cal','r-prot','r-carb','r-fat'].forEach(id => document.getElementById(id).textContent = '—');
     document.getElementById('detail-rows').innerHTML = '';
+    const qp = document.getElementById('quality-panel'); if (qp) qp.innerHTML = '';
     return;
   }
   // Подсказка за теглото след готвене
@@ -523,7 +524,73 @@ function updateResults() {
     document.getElementById('bar-carb').style.width = Math.min(cp,100) + '%';
     document.getElementById('bar-fat').style.width = Math.min(fp,100) + '%';
   }
+  // Качество: Nutri-Score + допустими твърдения (на 100 г)
+  const per100 = {};
+  Object.keys(p).forEach(k => per100[k] = p[k] * 100 / serving);
+  renderQuality(per100);
   updateLabel(r);
+}
+
+// ─── Nutri-Score (опростен официален алгоритъм за храни) ──────────────────────
+function nutriScore(p) {
+  const kJ = p.cal * 4.184;
+  const band = (v, arr) => { for (let i = 0; i < arr.length; i++) if (v <= arr[i]) return i; return arr.length; };
+  const ePts = band(kJ, [335,670,1005,1340,1675,2010,2345,2680,3015,3350]);
+  const sPts = band(p.sugar||0, [4.5,9,13.5,18,22.5,27,31,36,40,45]);
+  const fPts = band(p.sat||0, [1,2,3,4,5,6,7,8,9,10]);
+  const naPts = band((p.sodium||0), [90,180,270,360,450,540,630,720,810,900]);
+  const neg = ePts + sPts + fPts + naPts;
+  const fibPts = band(p.fiber||0, [0.9,1.9,2.8,3.7,4.7]);
+  const protPts = band(p.prot||0, [1.6,3.2,4.8,6.4,8]);
+  // ако негативните точки са ≥11 и няма точки за плодове/зеленчуци → белтъкът не се брои
+  const pos = (neg >= 11) ? fibPts : fibPts + protPts;
+  const score = neg - pos;
+  let grade;
+  if (score <= -1) grade = 'A'; else if (score <= 2) grade = 'B'; else if (score <= 10) grade = 'C'; else if (score <= 18) grade = 'D'; else grade = 'E';
+  return { score, grade };
+}
+
+// ─── Допустими хранителни твърдения (Регл. (ЕО) 1924/2006) на 100 г ───────────
+const CLAIM_DEFS = [
+  { k:'highProtein', t:{bg:'Високо съдържание на белтък',en:'High protein',ru:'Высокое содержание белка',uk:'Високий вміст білка'}, ok:p => p.cal>0 && (p.prot*4/p.cal)>=0.20 },
+  { k:'sourceProtein', t:{bg:'Източник на белтък',en:'Source of protein',ru:'Источник белка',uk:'Джерело білка'}, ok:p => p.cal>0 && (p.prot*4/p.cal)>=0.12 },
+  { k:'highFibre', t:{bg:'Високо съдържание на влакнини',en:'High fibre',ru:'Высокое содержание клетчатки',uk:'Високий вміст клітковини'}, ok:p => (p.fiber||0)>=6 },
+  { k:'sourceFibre', t:{bg:'Източник на влакнини',en:'Source of fibre',ru:'Источник клетчатки',uk:'Джерело клітковини'}, ok:p => (p.fiber||0)>=3 },
+  { k:'lowFat', t:{bg:'Ниско съдържание на мазнини',en:'Low fat',ru:'Низкое содержание жира',uk:'Низький вміст жиру'}, ok:p => (p.fat||0)<=3 },
+  { k:'fatFree', t:{bg:'Без мазнини',en:'Fat-free',ru:'Без жира',uk:'Без жиру'}, ok:p => (p.fat||0)<=0.5 },
+  { k:'lowSat', t:{bg:'Ниско съдържание на наситени мазнини',en:'Low saturated fat',ru:'Низкое содержание насыщенных жиров',uk:'Низький вміст насичених жирів'}, ok:p => (p.sat||0)<=1.5 },
+  { k:'lowSugar', t:{bg:'Ниско съдържание на захари',en:'Low sugars',ru:'Низкое содержание сахаров',uk:'Низький вміст цукрів'}, ok:p => (p.sugar||0)<=5 },
+  { k:'sugarFree', t:{bg:'Без захари',en:'Sugar-free',ru:'Без сахара',uk:'Без цукру'}, ok:p => (p.sugar||0)<=0.5 },
+  { k:'lowSalt', t:{bg:'Ниско съдържание на сол',en:'Low salt',ru:'Низкое содержание соли',uk:'Низький вміст солі'}, ok:p => (p.sodium||0)<=120 },
+  { k:'veryLowSalt', t:{bg:'Много ниско съдържание на сол',en:'Very low salt',ru:'Очень низкое содержание соли',uk:'Дуже низький вміст солі'}, ok:p => (p.sodium||0)<=48 },
+  { k:'lowEnergy', t:{bg:'Ниско енергийно съдържание',en:'Low energy',ru:'Низкокалорийный',uk:'Низькокалорійний'}, ok:p => (p.cal||0)<=40 },
+];
+const QUALITY_T = {
+  bg: { title:'Оценка и възможни твърдения', scoreLbl:'Nutri-Score', claimsLbl:'Възможни твърдения (Регл. 1924/2006)', none:'Няма допустими твърдения за този профил.', note:'Изчислено на 100 г. Твърденията се ползват само ако стойностите са потвърдени.' },
+  en: { title:'Score & possible claims', scoreLbl:'Nutri-Score', claimsLbl:'Possible claims (Reg. 1924/2006)', none:'No eligible claims for this profile.', note:'Calculated per 100 g. Use claims only with verified values.' },
+  ru: { title:'Оценка и возможные заявления', scoreLbl:'Nutri-Score', claimsLbl:'Возможные заявления (Регл. 1924/2006)', none:'Нет допустимых заявлений для этого профиля.', note:'Рассчитано на 100 г. Используйте заявления только с подтверждёнными значениями.' },
+  uk: { title:'Оцінка та можливі твердження', scoreLbl:'Nutri-Score', claimsLbl:'Можливі твердження (Регл. 1924/2006)', none:'Немає допустимих тверджень для цього профілю.', note:'Розраховано на 100 г. Використовуйте твердження лише з підтвердженими значеннями.' },
+};
+const NUTRI_COLORS = { A:'#2a8a3e', B:'#85bb2f', C:'#f5c518', D:'#ef8200', E:'#e1342a' };
+
+function renderQuality(p100) {
+  const el = document.getElementById('quality-panel');
+  if (!el) return;
+  const q = QUALITY_T[currentLang];
+  const ns = nutriScore(p100);
+  const claims = CLAIM_DEFS.filter(c => { try { return c.ok(p100); } catch(e){ return false; } });
+  const chips = claims.length
+    ? claims.map(c => `<span class="claim-chip">✓ ${c.t[currentLang]}</span>`).join('')
+    : `<span style="font-size:12px;color:var(--text3)">${q.none}</span>`;
+  el.innerHTML = `
+    <div class="quality-head">${q.title}</div>
+    <div class="quality-row">
+      <span class="ns-badge" style="background:${NUTRI_COLORS[ns.grade]}">${ns.grade}</span>
+      <span class="ns-lbl">${q.scoreLbl}</span>
+    </div>
+    <div class="claims-lbl">${q.claimsLbl}</div>
+    <div class="claims-wrap">${chips}</div>
+    <div class="quality-note">${q.note}</div>`;
 }
  
 function updateLabel(r) {

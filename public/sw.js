@@ -1,6 +1,6 @@
 // Service worker за NutriForm PWA — офлайн кеш на статиката.
 // При промяна на файловете увеличи версията, за да се обнови кешът.
-const CACHE = 'nutriform-v14';
+const CACHE = 'nutriform-v15';
 const ASSETS = [
   './',
   './index.html',
