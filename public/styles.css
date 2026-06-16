@@ -171,6 +171,14 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .eu-label .nut-row.head { font-size: 8.5px; font-weight: 700; color: #333; border-bottom: 1.5px solid #111; }
 .eu-label .nut-row.bold { font-weight: 700; }
 .eu-label .nut-row.sub .elc-name { padding-left: 12px; font-weight: 400; }
+.eu-label .el-info { font-size: 10px; margin-top: 7px; border-top: 0.5px solid #aaa; padding-top: 5px; line-height: 1.5; }
+.eu-label .el-info div { padding: 1px 0; }
+.eu-label .el-info b { font-weight: 700; }
+/* четимост при тъмен фон */
+.eu-label.dark-bg .nut-row, .eu-label.dark-bg .el-row, .eu-label.dark-bg .el-info, .eu-label.dark-bg .el-allergens, .eu-label.dark-bg .el-composition { border-color: rgba(255,255,255,0.35) !important; }
+.eu-label.dark-bg .nut-row.head { border-bottom-color: #fff !important; }
+.eu-label.dark-bg .nut-row .elc-ri { color: #e8e8e8; }
+.eu-label.dark-bg .el-note { color: #d8d8d8; border-top-color: rgba(255,255,255,0.35); }
 .eu-label .el-note { font-size: 8.5px; color: #555; margin-top: 7px; border-top: 0.5px solid #aaa; padding-top: 5px; }
  
 /* AI */

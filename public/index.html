@@ -252,9 +252,26 @@
           <div id="el-rows"></div>
           <div class="el-composition" id="el-composition" style="display:none"></div>
           <div class="el-allergens" id="el-allergens" style="display:none"></div>
+          <div class="el-info" id="el-info" style="display:none"></div>
           <div class="el-barcode" id="el-barcode" style="display:none; margin-top:7px;"></div>
           <div class="el-note" id="el-note"></div>
         </div>
+
+        <!-- Задължителни данни за етикета (EU 1169/2011) -->
+        <div class="card-soft" id="labelinfo-box" style="margin-top:14px; border:1px solid var(--border); border-radius:var(--rsm); padding:12px;">
+          <div id="lbl-labelinfo" style="font-size:12px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:10px;">Label details (EU 1169/2011)</div>
+          <div class="field"><label id="lf-l-producer">Manufacturer (name & address)</label><input type="text" id="lf-producer" oninput="updateResults()" placeholder="напр. ЕТ Пример, гр. София, ул. ..."></div>
+          <div class="row">
+            <div class="field" style="flex:1"><label id="lf-l-net">Net weight</label><input type="text" id="lf-net" oninput="updateResults()" placeholder="напр. 250 г"></div>
+            <div class="field" style="flex:1"><label id="lf-l-best">Best before</label><input type="text" id="lf-best" oninput="updateResults()" placeholder="напр. 12.2026"></div>
+          </div>
+          <div class="row">
+            <div class="field" style="flex:1"><label id="lf-l-batch">Batch / lot</label><input type="text" id="lf-batch" oninput="updateResults()" placeholder="напр. L240615"></div>
+            <div class="field" style="flex:1"><label id="lf-l-origin">Country of origin</label><input type="text" id="lf-origin" oninput="updateResults()" placeholder="напр. България"></div>
+          </div>
+          <div class="field" style="margin-bottom:0"><label id="lf-l-storage">Storage conditions</label><input type="text" id="lf-storage" oninput="updateResults()" placeholder="напр. На сухо и хладно място"></div>
+        </div>
+
         <label class="quid-row" style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; text-transform:none; letter-spacing:0; color:var(--text); cursor:pointer; font-weight:400;">
           <input type="checkbox" id="quid-toggle" onchange="updateResults()" style="width:auto;">
           <span id="lbl-quid">Show ingredient % (QUID)</span>
@@ -303,6 +320,19 @@
               <option value="#8a5a1e">🟨 Ochre</option>
               <option value="#3d3d3d">◼ Graphite</option>
               <option value="#5c4033">🤎 Chocolate</option>
+            </select>
+          </div>
+          <div>
+            <label id="lbl-bg">Background</label>
+            <select id="label-bg" onchange="applyLabelDesign()">
+              <option value="#ffffff">⬜ White</option>
+              <option value="#f7f3e8">🟫 Cream</option>
+              <option value="#eef3ee">🟩 Mint</option>
+              <option value="#eef1f6">🟦 Light blue</option>
+              <option value="#fdeef0">🟥 Rose</option>
+              <option value="#f5eef6">🟪 Lavender</option>
+              <option value="#1a3a2a">🌲 Dark green</option>
+              <option value="#2a2a2a">⬛ Dark</option>
             </select>
           </div>
         </div>

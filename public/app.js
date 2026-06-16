@@ -95,6 +95,15 @@ function applyTranslations() {
   document.getElementById('lbl-quid').textContent = QUID_T[currentLang];
   document.getElementById('lbl-barcode').textContent = BARCODE_T[currentLang];
   document.getElementById('btn-spec').textContent = SPEC_T[currentLang].btn;
+  const li = LABELINFO_T[currentLang];
+  document.getElementById('lbl-labelinfo').textContent = li.title;
+  document.getElementById('lf-l-producer').textContent = li.producer + ' (' + (currentLang==='bg'?'име и адрес':currentLang==='en'?'name & address':currentLang==='ru'?'имя и адрес':'імʼя та адреса') + ')';
+  document.getElementById('lf-l-net').textContent = li.net;
+  document.getElementById('lf-l-best').textContent = li.best;
+  document.getElementById('lf-l-batch').textContent = li.batch;
+  document.getElementById('lf-l-origin').textContent = li.origin;
+  document.getElementById('lf-l-storage').textContent = li.storage;
+  document.getElementById('lbl-bg').textContent = li.bg;
   document.getElementById('tab-btn-nutrition').textContent = t.tabNutrition;
   document.getElementById('tab-btn-label').textContent = t.tabLabel;
   document.getElementById('tab-btn-ai').textContent = t.tabAI;
@@ -531,6 +540,7 @@ function updateResults() {
   Object.keys(p).forEach(k => per100[k] = p[k] * 100 / serving);
   renderQuality(per100);
   updateLabel(r);
+  renderLabelInfo();
   renderBarcode();
 }
 
@@ -921,25 +931,36 @@ const TITLE_FONTS = {
   bold: "'Oswald', Arial, sans-serif",
   garamond: "'Cormorant Garamond', Georgia, serif"
 };
+function isDarkColor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 130; // груба яркост
+}
 function getLabelDesign() {
   const tf = document.getElementById('label-title-font').value;
+  const bgEl = document.getElementById('label-bg');
   return {
     font: LABEL_FONTS[document.getElementById('label-font').value],
     titleFont: TITLE_FONTS[tf],
     titleScale: tf === 'script' ? 1.25 : 1,
     border: document.getElementById('label-border').value,
-    color: document.getElementById('label-color').value
+    color: document.getElementById('label-color').value,
+    bg: bgEl ? bgEl.value : '#ffffff'
   };
 }
 function applyLabelDesign() {
   const d = getLabelDesign();
   const el = document.getElementById('eu-label');
+  const darkBg = isDarkColor(d.bg);
+  const textColor = darkBg ? '#ffffff' : d.color;
   el.style.fontFamily = d.font;
-  el.style.color = d.color;
-  el.style.border = d.border === 'thick' ? `2px solid ${d.color}` : d.border === 'thin' ? `1px solid ${d.color}` : 'none';
-  el.querySelectorAll('.el-title, [id=el-per100]').forEach(e => {
-    e.style.borderBottomColor = d.color;
-  });
+  el.style.background = d.bg;
+  el.style.color = textColor;
+  el.classList.toggle('dark-bg', darkBg);
+  el.style.border = d.border === 'thick' ? `2px solid ${textColor}` : d.border === 'thin' ? `1px solid ${textColor}` : 'none';
+  el.querySelectorAll('.el-title, [id=el-per100]').forEach(e => { e.style.borderBottomColor = textColor; });
   const title = el.querySelector('.el-title');
   title.style.fontFamily = d.titleFont || '';
   title.style.fontSize = d.titleFont ? `${26 * d.titleScale}px` : '';
@@ -1020,6 +1041,30 @@ const SPEC_T = {
   ru: { btn:'📄 Спецификация (PDF)', title:'Спецификация продукта', batch:'Партия', serving:'Порция', date:'Дата', nutri:'Пищевая ценность', comp:'Состав', allerg:'Аллергены', score:'Nutri-Score' },
   uk: { btn:'📄 Специфікація (PDF)', title:'Специфікація продукту', batch:'Партія', serving:'Порція', date:'Дата', nutri:'Харчова цінність', comp:'Склад', allerg:'Алергени', score:'Nutri-Score' },
 };
+// ─── ЗАДЪЛЖИТЕЛНИ ДАННИ ЗА ЕТИКЕТА (EU 1169/2011) ─────────────────────────────
+const LABELINFO_T = {
+  bg: { title:'Данни за етикета (EU 1169/2011)', producer:'Производител', net:'Нетно тегло', best:'Най-добър до', batch:'Партида', origin:'Произход', storage:'Съхранение', bg:'Фон' },
+  en: { title:'Label details (EU 1169/2011)', producer:'Manufacturer', net:'Net weight', best:'Best before', batch:'Batch', origin:'Origin', storage:'Storage', bg:'Background' },
+  ru: { title:'Данные этикетки (EU 1169/2011)', producer:'Производитель', net:'Нетто', best:'Годен до', batch:'Партия', origin:'Происхождение', storage:'Хранение', bg:'Фон' },
+  uk: { title:'Дані етикетки (EU 1169/2011)', producer:'Виробник', net:'Нетто', best:'Придатний до', batch:'Партія', origin:'Походження', storage:'Зберігання', bg:'Фон' },
+};
+function renderLabelInfo() {
+  const el = document.getElementById('el-info');
+  if (!el) return;
+  const L = LABELINFO_T[currentLang];
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const rows = [];
+  const add = (lbl, val) => { if (val) rows.push(`<div><b>${lbl}:</b> ${escapeHtml(val)}</div>`); };
+  add(L.net, v('lf-net'));
+  add(L.storage, v('lf-storage'));
+  add(L.best, v('lf-best'));
+  add(L.batch, v('lf-batch'));
+  add(L.origin, v('lf-origin'));
+  add(L.producer, v('lf-producer'));
+  el.innerHTML = rows.join('');
+  el.style.display = rows.length ? 'block' : 'none';
+}
+
 function exportSpecSheet() {
   const s = SPEC_T[currentLang];
   const r = calcNutrition();
@@ -1028,6 +1073,7 @@ function exportSpecSheet() {
   const nutri = document.getElementById('el-rows').innerHTML;
   const comp = document.getElementById('el-composition').innerHTML;
   const allerg = document.getElementById('el-allergens').style.display !== 'none' ? document.getElementById('el-allergens').innerHTML : '';
+  const info = document.getElementById('el-info').style.display !== 'none' ? document.getElementById('el-info').innerHTML : '';
   const barcode = document.getElementById('el-barcode').innerHTML;
   const batchTxt = r.cooked ? `${r.totalWeight.toFixed(0)} г → ${r.cooked.toFixed(0)} г` : `${r.totalWeight.toFixed(0)} г`;
   const ns = nutriScore((() => { const p={}; Object.keys(r.per).forEach(k=>p[k]=r.per[k]*100/r.serving); return p; })());
@@ -1048,6 +1094,7 @@ function exportSpecSheet() {
     <h2>${s.nutri}</h2>${nutri}
     ${comp ? `<h2>${s.comp}</h2><div>${comp}</div>` : ''}
     ${allerg ? `<h2>${s.allerg}</h2><div>${allerg}</div>` : ''}
+    ${info ? `<h2>${SPEC_T[currentLang].title}</h2><div style="font-size:12px;line-height:1.7">${info}</div>` : ''}
     ${barcode ? `<div style="margin-top:18px">${barcode}</div>` : ''}
     <scr`+`ipt>window.print();</scr`+`ipt></body></html>`);
   w.document.close();
