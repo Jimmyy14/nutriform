@@ -15,6 +15,13 @@ const RI_T = {
   ru: { nutTitle:'Пищевая ценность', per100:'на 100 г', perPortion:'на порцию', ri:'%РСП*', riNote:'* Референтное потребление среднего взрослого (8400 кДж / 2000 ккал).' },
   uk: { nutTitle:'Харчова цінність', per100:'на 100 г', perPortion:'на порцію', ri:'%РСП*', riNote:'* Референтне споживання середнього дорослого (8400 кДж / 2000 ккал).' },
 };
+const QUID_T = { bg:'Покажи % на съставките (QUID)', en:'Show ingredient % (QUID)', ru:'Показать % ингредиентов (QUID)', uk:'Показати % інгредієнтів (QUID)' };
+const EDIT_T = {
+  bg: { title:'Редакция на стойностите (на 100 г)', save:'Запази', cancel:'Откажи', srcEdit:'ред.', cal:'Калории (kcal)', prot:'Белтък (г)', carb:'Въглехидрати (г)', fat:'Мазнини (г)', sat:'Наситени (г)', fiber:'Влакнини (г)', sugar:'Захари (г)', sodium:'Натрий (мг)' },
+  en: { title:'Edit values (per 100 g)', save:'Save', cancel:'Cancel', srcEdit:'edit', cal:'Calories (kcal)', prot:'Protein (g)', carb:'Carbs (g)', fat:'Fat (g)', sat:'Saturates (g)', fiber:'Fibre (g)', sugar:'Sugars (g)', sodium:'Sodium (mg)' },
+  ru: { title:'Редактирование (на 100 г)', save:'Сохранить', cancel:'Отмена', srcEdit:'ред.', cal:'Калории (ккал)', prot:'Белки (г)', carb:'Углеводы (г)', fat:'Жиры (г)', sat:'Насыщенные (г)', fiber:'Клетчатка (г)', sugar:'Сахара (г)', sodium:'Натрий (мг)' },
+  uk: { title:'Редагування (на 100 г)', save:'Зберегти', cancel:'Скасувати', srcEdit:'ред.', cal:'Калорії (ккал)', prot:'Білки (г)', carb:'Вуглеводи (г)', fat:'Жири (г)', sat:'Насичені (г)', fiber:'Клітковина (г)', sugar:'Цукри (г)', sodium:'Натрій (мг)' },
+};
 const COOKED_T = {
   bg: { label:'Тегло след готвене (г):', hintOpt:'По избор: за печени/варени продукти въведи теглото на готовия продукт — стойностите стават „на 100 г готов продукт".', hintLoss:(p)=>`Стойностите са на 100 г готов продукт (загуба на влага ${p}%).` },
   en: { label:'Weight after cooking (g):', hintOpt:'Optional: for baked/cooked products enter the finished weight — values become "per 100 g of finished product".', hintLoss:(p)=>`Values are per 100 g of finished product (moisture loss ${p}%).` },
@@ -85,6 +92,7 @@ function applyTranslations() {
   document.getElementById('btn-add').textContent = t.btnAdd;
   document.getElementById('lbl-total-weight').textContent = t.totalWeight;
   document.getElementById('lbl-cooked-weight').textContent = COOKED_T[currentLang].label;
+  document.getElementById('lbl-quid').textContent = QUID_T[currentLang];
   document.getElementById('tab-btn-nutrition').textContent = t.tabNutrition;
   document.getElementById('tab-btn-label').textContent = t.tabLabel;
   document.getElementById('tab-btn-ai').textContent = t.tabAI;
@@ -207,9 +215,7 @@ async function searchIngredient(q) {
   // 2. USDA search (добавя към локалните)
   showSearchStatus(t.searchingUSDA);
   try {
-    const res = await fetch(
-      `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=8&api_key=DEMO_KEY`
-    );
+    const res = await fetch(`/api/usda?query=${encodeURIComponent(q)}`);
     const data = await res.json();
     if (data.foods && data.foods.length > 0) {
       const usdaItems = data.foods.slice(0, 6).map(f => {
@@ -383,6 +389,38 @@ function updateAmount(idx, val) {
   ingredients[idx].amount = amount;
   renderIngredients();
 }
+
+// ─── РЕДАКЦИЯ на хранителните стойности на съставка (записва се в кеша) ────────
+let editIdx = -1;
+const EDIT_FIELDS = [['cal','cal'],['prot','prot'],['carb','carb'],['fat','fat'],['sat','sat'],['fiber','fiber'],['sugar','sugar'],['sodium','sodium']];
+function openEditIngredient(idx) {
+  editIdx = idx;
+  const e = EDIT_T[currentLang];
+  const ing = ingredients[idx];
+  const d = getNutrition(ing.name) || {};
+  document.getElementById('em-title').textContent = e.title;
+  document.getElementById('em-name').textContent = ing.name;
+  EDIT_FIELDS.forEach(([f, k]) => {
+    const el = document.getElementById('em-' + f);
+    el.value = (d[k] != null ? d[k] : '');
+    el.previousElementSibling.textContent = e[f];
+  });
+  document.getElementById('em-save').textContent = e.save;
+  document.getElementById('em-cancel').textContent = e.cancel;
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+function saveEditIngredient() {
+  if (editIdx < 0) return;
+  const ing = ingredients[editIdx];
+  const num = id => { const v = parseFloat(document.getElementById('em-' + id).value); return isNaN(v) ? 0 : v; };
+  const data = {};
+  EDIT_FIELDS.forEach(([f, k]) => data[k] = num(f));
+  aiNutritionCache[ing.name.toLowerCase()] = data;
+  ingredients[editIdx].source = 'edit';
+  closeEditModal();
+  renderIngredients();
+}
+function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; editIdx = -1; }
  
 function getNutrition(name) {
   const key = name.toLowerCase();
@@ -420,14 +458,14 @@ function renderIngredients() {
   ingredients.forEach((ing, idx) => {
     const d = getNutrition(ing.name);
     const kcal = d ? Math.round(d.cal * ing.amount / 100) : '?';
-    const srcClass = ing.source === 'usda' ? 'badge-usda' : ing.source === 'ai' ? 'badge-ai' : ing.source === 'local' ? 'badge-usda' : 'badge-unk';
-    const srcLabel = ing.source === 'usda' ? t.srcUSDA : ing.source === 'ai' ? t.srcAI : ing.source === 'local' ? t.srcLocal : '?';
+    const srcClass = ing.source === 'edit' ? 'badge-ai' : ing.source === 'usda' ? 'badge-usda' : ing.source === 'ai' ? 'badge-ai' : ing.source === 'local' ? 'badge-usda' : 'badge-unk';
+    const srcLabel = ing.source === 'edit' ? EDIT_T[currentLang].srcEdit : ing.source === 'usda' ? t.srcUSDA : ing.source === 'ai' ? t.srcAI : ing.source === 'local' ? t.srcLocal : '?';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><div class="ing-name-cell">${ing.name}<span class="badge ${srcClass}">${srcLabel}</span></div></td>
       <td style="text-align:right; white-space:nowrap"><input class="amt-edit" type="number" min="0" step="0.1" value="${ing.amount}" onchange="updateAmount(${idx}, this.value)" onfocus="this.select()">${t.g}</td>
       <td style="text-align:right; color:var(--text2)">${kcal}</td>
-      <td style="text-align:right"><button class="del-btn" onclick="removeIng(${idx})">✕</button></td>`;
+      <td style="text-align:right; white-space:nowrap"><button class="del-btn" onclick="openEditIngredient(${idx})" title="${EDIT_T[currentLang].title}">✎</button> <button class="del-btn" onclick="removeIng(${idx})">✕</button></td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('total-weight-val').textContent = totalWeight.toFixed(0) + ' ' + t.g;
@@ -1217,7 +1255,12 @@ function renderAdditives() {
   ).join('');
 }
 function buildComposition() {
-  const parts = ingredients.slice().sort((a, b) => b.amount - a.amount).map(i => i.name);
+  const total = ingredients.reduce((s, i) => s + i.amount, 0) || 1;
+  const quidEl = document.getElementById('quid-toggle');
+  const showQuid = quidEl && quidEl.checked;
+  const parts = ingredients.slice().sort((a, b) => b.amount - a.amount).map(i =>
+    showQuid ? `${i.name} (${Math.round(i.amount / total * 100)}%)` : i.name
+  );
   const adds = selectedAdditives.map(a => additiveLabel(a));
   const all = parts.concat(adds);
   return all.length ? all.join(', ') : '';
