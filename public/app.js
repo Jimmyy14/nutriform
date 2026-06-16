@@ -7,6 +7,14 @@ let selectedSuggIdx = -1;
 let aiNutritionCache = {};
 let lastQuery = '';
 const aiQueryCache = {}; // кеш на AI резултатите по заявка (за да не пита повторно)
+// Референтни дневни приеми (EU 1169/2011, възрастен) — за колоната %РП
+const REF_INTAKE = { cal:2000, fat:70, sat:20, carb:260, sugar:90, prot:50, salt:6 };
+const RI_T = {
+  bg: { nutTitle:'Хранителна информация', per100:'на 100 г', perPortion:'на порция', ri:'%РП*', riNote:'* Референтен прием на средностатистически възрастен (8400 kJ / 2000 kcal).' },
+  en: { nutTitle:'Nutrition information', per100:'per 100 g', perPortion:'per portion', ri:'%RI*', riNote:'* Reference intake of an average adult (8400 kJ / 2000 kcal).' },
+  ru: { nutTitle:'Пищевая ценность', per100:'на 100 г', perPortion:'на порцию', ri:'%РСП*', riNote:'* Референтное потребление среднего взрослого (8400 кДж / 2000 ккал).' },
+  uk: { nutTitle:'Харчова цінність', per100:'на 100 г', perPortion:'на порцію', ri:'%РСП*', riNote:'* Референтне споживання середнього дорослого (8400 кДж / 2000 ккал).' },
+};
 const COOKED_T = {
   bg: { label:'Тегло след готвене (г):', hintOpt:'По избор: за печени/варени продукти въведи теглото на готовия продукт — стойностите стават „на 100 г готов продукт".', hintLoss:(p)=>`Стойностите са на 100 г готов продукт (загуба на влага ${p}%).` },
   en: { label:'Weight after cooking (g):', hintOpt:'Optional: for baked/cooked products enter the finished weight — values become "per 100 g of finished product".', hintLoss:(p)=>`Values are per 100 g of finished product (moisture loss ${p}%).` },
@@ -483,7 +491,7 @@ function updateResults() {
 function updateLabel(r) {
   if (productType === 'feed') { updateFeedLabel(r); return; }
   const t = T[currentLang];
-  let p, kJ, salt, satfatDisplay;
+  let p, kJ, salt, satfatDisplay, satVal;
   if (labelMode === 'lab') {
     const L = getLabValues();
     p = {
@@ -496,7 +504,8 @@ function updateLabel(r) {
     };
     kJ = Math.round(p.cal * 4.184);
     salt = isNaN(L.salt) ? 0 : L.salt;
-    satfatDisplay = isNaN(L.satfat) ? '—' : L.satfat.toFixed(1) + ' ' + t.g;
+    satVal = isNaN(L.satfat) ? null : L.satfat;
+    satfatDisplay = satVal == null ? '—' : satVal.toFixed(1) + ' ' + t.g;
   } else {
     // EU 1169/2011: values per 100 g of product (calculated from DB)
     const f = 100 / r.serving;
@@ -504,24 +513,36 @@ function updateLabel(r) {
     Object.keys(r.per).forEach(k => p[k] = r.per[k] * f);
     kJ = Math.round(p.cal * 4.184);
     salt = p.sodium * 2.5 / 1000;
-    satfatDisplay = (p.sat || 0).toFixed(1) + ' ' + t.g;
+    satVal = p.sat || 0;
+    satfatDisplay = satVal.toFixed(1) + ' ' + t.g;
   }
   const name = document.getElementById('product-name').value || 'Product';
   document.getElementById('el-name').textContent = name;
   document.getElementById('el-batch').textContent = r.cooked
     ? `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g} → ${r.cooked.toFixed(0)}${t.g}`
     : `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g}`;
-  document.getElementById('el-per100').textContent = t.per100;
-  document.getElementById('el-rows').innerHTML = `
-    <div class="el-row bold"><span>${t.energy}</span><span>${kJ} kJ / ${Math.round(p.cal)} kcal</span></div>
-    <div class="el-row bold"><span>${t.fatEU}</span><span>${p.fat.toFixed(1)} ${t.g}</span></div>
-    <div class="el-row sub"><span>${t.satFatEU}</span><span>${satfatDisplay}</span></div>
-    <div class="el-row bold"><span>${t.carbEU}</span><span>${p.carb.toFixed(1)} ${t.g}</span></div>
-    <div class="el-row sub"><span>${t.sugarEU}</span><span>${p.sugar.toFixed(1)} ${t.g}</span></div>
-    <div class="el-row"><span>${t.fiberEU}</span><span>${p.fiber.toFixed(1)} ${t.g}</span></div>
-    <div class="el-row bold"><span>${t.proteinEU}</span><span>${p.prot.toFixed(1)} ${t.g}</span></div>
-    <div class="el-row bold"><span>${t.saltEU}</span><span>${salt.toFixed(2)} ${t.g}</span></div>
-  `;
+  const ri = RI_T[currentLang];
+  const serv = r.serving;
+  const gg = t.g;
+  document.getElementById('el-per100').textContent = ri.nutTitle;
+  const fmt = (v) => v == null ? '—' : v.toFixed(1) + ' ' + gg;
+  const por = (v) => v == null ? null : v * serv / 100; // на порция
+  const riPct = (portionVal, refKey) => (portionVal == null || !REF_INTAKE[refKey]) ? '' : Math.round(portionVal / REF_INTAKE[refKey] * 100) + '%';
+  const rows = [
+    { lbl:t.energy, c1:`${kJ} kJ / ${Math.round(p.cal)} kcal`, c2:`${Math.round(kJ*serv/100)} kJ / ${Math.round(p.cal*serv/100)} kcal`, ri:riPct(p.cal*serv/100,'cal'), bold:true },
+    { lbl:t.fatEU, c1:fmt(p.fat), c2:fmt(por(p.fat)), ri:riPct(por(p.fat),'fat'), bold:true },
+    { lbl:t.satFatEU, c1:satfatDisplay, c2:fmt(por(satVal)), ri:riPct(por(satVal),'sat'), sub:true },
+    { lbl:t.carbEU, c1:fmt(p.carb), c2:fmt(por(p.carb)), ri:riPct(por(p.carb),'carb'), bold:true },
+    { lbl:t.sugarEU, c1:fmt(p.sugar), c2:fmt(por(p.sugar)), ri:riPct(por(p.sugar),'sugar'), sub:true },
+    { lbl:t.fiberEU, c1:fmt(p.fiber), c2:fmt(por(p.fiber)), ri:'' },
+    { lbl:t.proteinEU, c1:fmt(p.prot), c2:fmt(por(p.prot)), ri:riPct(por(p.prot),'prot'), bold:true },
+    { lbl:t.saltEU, c1:salt.toFixed(2)+' '+gg, c2:(salt*serv/100).toFixed(2)+' '+gg, ri:riPct(salt*serv/100,'salt'), bold:true },
+  ];
+  let html = `<div class="nut-row head"><span class="elc-name"></span><span class="elc-v">${ri.per100}</span><span class="elc-v">${ri.perPortion} ${serv}${gg}</span><span class="elc-ri">${ri.ri}</span></div>`;
+  rows.forEach(rw => {
+    html += `<div class="nut-row${rw.bold?' bold':''}${rw.sub?' sub':''}"><span class="elc-name">${rw.lbl}</span><span class="elc-v">${rw.c1}</span><span class="elc-v">${rw.c2}</span><span class="elc-ri">${rw.ri}</span></div>`;
+  });
+  document.getElementById('el-rows').innerHTML = html;
   // Състав (задължителен по Регл. 1169/2011): съставки в низходящ ред + добавки с E-номер
   const compEl = document.getElementById('el-composition');
   const comp = buildComposition();
@@ -539,7 +560,7 @@ function updateLabel(r) {
   } else {
     allergenEl.style.display = 'none';
   }
-  document.getElementById('el-note').textContent = labelMode === 'lab' ? t.labNote : t.euNote;
+  document.getElementById('el-note').textContent = ri.riNote + ' ' + (labelMode === 'lab' ? t.labNote : t.euNote);
 }
  
 function onDataChange() { updateResults(); }
@@ -839,6 +860,12 @@ function printLabels() {
     .el-row { display: flex; justify-content: space-between; font-size: ${size.font*0.92}px; padding: 0.3mm 0; border-bottom: 0.3px solid #999; }
     .el-row.bold { font-weight: 700; }
     .el-row.sub { padding-left: 3mm; }
+    .nut-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 1mm; font-size: ${size.font*0.82}px; padding: 0.3mm 0; border-bottom: 0.3px solid #999; align-items: baseline; }
+    .nut-row .elc-v { text-align: right; white-space: nowrap; }
+    .nut-row .elc-ri { text-align: right; }
+    .nut-row.head { font-weight: 700; font-size: ${size.font*0.72}px; border-bottom: 1px solid ${d.color}; }
+    .nut-row.bold { font-weight: 700; }
+    .nut-row.sub .elc-name { padding-left: 2mm; font-weight: 400; }
     .el-allergens { font-size: ${size.font*0.85}px; margin-top: 1mm; padding-top: 0.5mm; border-top: 0.5px solid #999; }
     .el-allergens b { font-weight: 800; }
     .el-note { font-size: ${size.font*0.62}px; color: #555; margin-top: 1mm; border-top: 0.3px solid #999; padding-top: 0.5mm; }
