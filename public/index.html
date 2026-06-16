@@ -252,12 +252,17 @@
           <div id="el-rows"></div>
           <div class="el-composition" id="el-composition" style="display:none"></div>
           <div class="el-allergens" id="el-allergens" style="display:none"></div>
+          <div class="el-barcode" id="el-barcode" style="display:none; margin-top:7px;"></div>
           <div class="el-note" id="el-note"></div>
         </div>
         <label class="quid-row" style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; text-transform:none; letter-spacing:0; color:var(--text); cursor:pointer; font-weight:400;">
           <input type="checkbox" id="quid-toggle" onchange="updateResults()" style="width:auto;">
           <span id="lbl-quid">Show ingredient % (QUID)</span>
         </label>
+        <div class="field" style="margin-top:10px;">
+          <label id="lbl-barcode">Barcode (EAN-13)</label>
+          <input type="text" id="barcode-input" inputmode="numeric" placeholder="напр. 380123456789" oninput="updateResults()">
+        </div>
         <div class="print-controls" style="grid-template-columns:1fr 1fr; border-top:none; padding-top:0; margin-top:14px;">
           <div>
             <label id="lbl-font">Font</label>
@@ -316,6 +321,7 @@
           </div>
         </div>
         <button class="btn btn-green" onclick="printLabels()" style="margin-top:12px" id="btn-print">🖨 Print labels</button>
+        <button class="btn" onclick="exportSpecSheet()" style="margin-top:8px; width:100%;" id="btn-spec">📄 Product spec (PDF)</button>
       </div>
  
       <!-- AI -->

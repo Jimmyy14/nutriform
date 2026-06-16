@@ -93,6 +93,8 @@ function applyTranslations() {
   document.getElementById('lbl-total-weight').textContent = t.totalWeight;
   document.getElementById('lbl-cooked-weight').textContent = COOKED_T[currentLang].label;
   document.getElementById('lbl-quid').textContent = QUID_T[currentLang];
+  document.getElementById('lbl-barcode').textContent = BARCODE_T[currentLang];
+  document.getElementById('btn-spec').textContent = SPEC_T[currentLang].btn;
   document.getElementById('tab-btn-nutrition').textContent = t.tabNutrition;
   document.getElementById('tab-btn-label').textContent = t.tabLabel;
   document.getElementById('tab-btn-ai').textContent = t.tabAI;
@@ -529,6 +531,7 @@ function updateResults() {
   Object.keys(p).forEach(k => per100[k] = p[k] * 100 / serving);
   renderQuality(per100);
   updateLabel(r);
+  renderBarcode();
 }
 
 // ─── Nutri-Score (опростен официален алгоритъм за храни) ──────────────────────
@@ -977,7 +980,79 @@ function printLabels() {
   </style></head><body>${labels}<scr`+`ipt>window.print();</scr`+`ipt></body></html>`);
   w.document.close();
 }
- 
+
+// ─── BARCODE (EAN-13) ────────────────────────────────────────────────────────
+const BARCODE_T = { bg:'Баркод (EAN-13)', en:'Barcode (EAN-13)', ru:'Штрихкод (EAN-13)', uk:'Штрихкод (EAN-13)' };
+function ean13Svg(input) {
+  let d = (input || '').replace(/\D/g, '');
+  if (d.length !== 12 && d.length !== 13) return '';
+  d = d.slice(0, 12);
+  let sum = 0; for (let i = 0; i < 12; i++) sum += (+d[i]) * (i % 2 ? 3 : 1);
+  const full = d + ((10 - (sum % 10)) % 10);
+  const L = ['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+  const G = ['0100111','0110011','0011011','0100001','0011101','0111001','0000101','0010001','0001001','0010111'];
+  const R = ['1110010','1100110','1101100','1000010','1011100','1001110','1010000','1000100','1001000','1110100'];
+  const parity = ['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+  const pat = parity[+full[0]];
+  let bits = '101';
+  for (let i = 0; i < 6; i++) bits += (pat[i] === 'L' ? L : G)[+full[1 + i]];
+  bits += '01010';
+  for (let i = 0; i < 6; i++) bits += R[+full[7 + i]];
+  bits += '101';
+  const H = 50, W = bits.length;
+  let rects = '';
+  for (let i = 0; i < bits.length; i++) if (bits[i] === '1') rects += `<rect x="${i}" y="0" width="1" height="${H}"/>`;
+  return `<svg viewBox="0 0 ${W} ${H + 12}" width="160" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><g fill="#000">${rects}</g><text x="${W/2}" y="${H + 10}" font-size="9" text-anchor="middle" font-family="monospace" fill="#000">${full}</text></svg>`;
+}
+function renderBarcode() {
+  const el = document.getElementById('el-barcode');
+  if (!el) return;
+  const inp = document.getElementById('barcode-input');
+  const svg = ean13Svg(inp ? inp.value : '');
+  el.innerHTML = svg;
+  el.style.display = svg ? 'block' : 'none';
+}
+
+// ─── PRODUCT SPEC SHEET (PDF чрез печат) ──────────────────────────────────────
+const SPEC_T = {
+  bg: { btn:'📄 Спецификация (PDF)', title:'Продуктова спецификация', batch:'Партида', serving:'Порция', date:'Дата', nutri:'Хранителна информация', comp:'Състав', allerg:'Алергени', score:'Nutri-Score' },
+  en: { btn:'📄 Product spec (PDF)', title:'Product specification', batch:'Batch', serving:'Serving', date:'Date', nutri:'Nutrition information', comp:'Ingredients', allerg:'Allergens', score:'Nutri-Score' },
+  ru: { btn:'📄 Спецификация (PDF)', title:'Спецификация продукта', batch:'Партия', serving:'Порция', date:'Дата', nutri:'Пищевая ценность', comp:'Состав', allerg:'Аллергены', score:'Nutri-Score' },
+  uk: { btn:'📄 Специфікація (PDF)', title:'Специфікація продукту', batch:'Партія', serving:'Порція', date:'Дата', nutri:'Харчова цінність', comp:'Склад', allerg:'Алергени', score:'Nutri-Score' },
+};
+function exportSpecSheet() {
+  const s = SPEC_T[currentLang];
+  const r = calcNutrition();
+  if (!r) return;
+  const name = document.getElementById('product-name').value || '—';
+  const nutri = document.getElementById('el-rows').innerHTML;
+  const comp = document.getElementById('el-composition').innerHTML;
+  const allerg = document.getElementById('el-allergens').style.display !== 'none' ? document.getElementById('el-allergens').innerHTML : '';
+  const barcode = document.getElementById('el-barcode').innerHTML;
+  const batchTxt = r.cooked ? `${r.totalWeight.toFixed(0)} г → ${r.cooked.toFixed(0)} г` : `${r.totalWeight.toFixed(0)} г`;
+  const ns = nutriScore((() => { const p={}; Object.keys(r.per).forEach(k=>p[k]=r.per[k]*100/r.serving); return p; })());
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html lang="${currentLang}"><head><meta charset="UTF-8"><title>${name} — ${s.title}</title><style>
+    @page { size:A4; margin:18mm; }
+    body { font-family:-apple-system,'Segoe UI',Arial,sans-serif; color:#18170f; font-size:13px; line-height:1.5; }
+    h1 { font-size:22px; margin:0 0 4px; }
+    .meta { color:#555; font-size:12px; margin-bottom:18px; }
+    h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:#2a6041; border-bottom:2px solid #2a6041; padding-bottom:3px; margin:18px 0 8px; }
+    .nut-row { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; padding:3px 0; border-bottom:0.5px solid #ccc; }
+    .nut-row .elc-v,.nut-row .elc-ri { text-align:right; } .nut-row.bold{font-weight:700;} .nut-row.head{font-weight:700;border-bottom:1.5px solid #111;} .nut-row.sub .elc-name{padding-left:12px;}
+    .ns { display:inline-flex; width:30px;height:30px;border-radius:6px;color:#fff;font-weight:800;align-items:center;justify-content:center;background:${NUTRI_COLORS[ns.grade]};vertical-align:middle;margin-right:8px;}
+  </style></head><body>
+    <h1>${name}</h1>
+    <div class="meta">${s.batch}: ${batchTxt} &nbsp;·&nbsp; ${s.serving}: ${r.serving} г &nbsp;·&nbsp; ${s.date}: ____________</div>
+    <h2>${s.score}</h2><div><span class="ns">${ns.grade}</span></div>
+    <h2>${s.nutri}</h2>${nutri}
+    ${comp ? `<h2>${s.comp}</h2><div>${comp}</div>` : ''}
+    ${allerg ? `<h2>${s.allerg}</h2><div>${allerg}</div>` : ''}
+    ${barcode ? `<div style="margin-top:18px">${barcode}</div>` : ''}
+    <scr`+`ipt>window.print();</scr`+`ipt></body></html>`);
+  w.document.close();
+}
+
 // ─── IMPROVE RECIPE ──────────────────────────────────────────────────────────
 async function improveRecipe() {
   const t = T[currentLang];
