@@ -7,6 +7,12 @@ let selectedSuggIdx = -1;
 let aiNutritionCache = {};
 let lastQuery = '';
 const aiQueryCache = {}; // кеш на AI резултатите по заявка (за да не пита повторно)
+const COOKED_T = {
+  bg: { label:'Тегло след готвене (г):', hintOpt:'По избор: за печени/варени продукти въведи теглото на готовия продукт — стойностите стават „на 100 г готов продукт".', hintLoss:(p)=>`Стойностите са на 100 г готов продукт (загуба на влага ${p}%).` },
+  en: { label:'Weight after cooking (g):', hintOpt:'Optional: for baked/cooked products enter the finished weight — values become "per 100 g of finished product".', hintLoss:(p)=>`Values are per 100 g of finished product (moisture loss ${p}%).` },
+  ru: { label:'Вес после готовки (г):', hintOpt:'Опционально: для печёных/варёных продуктов введите вес готового продукта — значения станут «на 100 г готового продукта».', hintLoss:(p)=>`Значения на 100 г готового продукта (потеря влаги ${p}%).` },
+  uk: { label:'Вага після готування (г):', hintOpt:'Опціонально: для печених/варених продуктів введіть вагу готового продукту — значення стануть «на 100 г готового продукту».', hintLoss:(p)=>`Значення на 100 г готового продукту (втрата вологи ${p}%).` },
+};
  
 // ─── LANGUAGE ─────────────────────────────────────────────────────────────────
 function selectLang(lang) {
@@ -70,6 +76,7 @@ function applyTranslations() {
   document.getElementById('lbl-amount').textContent = t.amount;
   document.getElementById('btn-add').textContent = t.btnAdd;
   document.getElementById('lbl-total-weight').textContent = t.totalWeight;
+  document.getElementById('lbl-cooked-weight').textContent = COOKED_T[currentLang].label;
   document.getElementById('tab-btn-nutrition').textContent = t.tabNutrition;
   document.getElementById('tab-btn-label').textContent = t.tabLabel;
   document.getElementById('tab-btn-ai').textContent = t.tabAI;
@@ -378,17 +385,23 @@ function calcNutrition() {
   const serving = parseFloat(document.getElementById('serving-size').value) || 100;
   const totalWeight = ingredients.reduce((s, i) => s + i.amount, 0);
   if (!totalWeight) return null;
-  let t = {cal:0,prot:0,carb:0,fat:0,fiber:0,sugar:0,sodium:0};
+  // Тегло на готовия продукт (по избор) — отчита загубата на влага при готвене/печене.
+  // Хранителните вещества не се променят при изпаряване на вода, само теглото; затова
+  // стойностите „на 100 г готов продукт" се делят на това тегло, не на тестото.
+  const cookedEl = document.getElementById('cooked-weight');
+  const cooked = cookedEl ? parseFloat(cookedEl.value) : NaN;
+  const finalWeight = (!isNaN(cooked) && cooked > 0) ? cooked : totalWeight;
+  let t = {cal:0,prot:0,carb:0,fat:0,sat:0,fiber:0,sugar:0,sodium:0};
   ingredients.forEach(ing => {
     const d = getNutrition(ing.name);
     if (!d) return;
     const f = ing.amount / 100;
     Object.keys(t).forEach(k => t[k] += (d[k]||0) * f);
   });
-  const scale = serving / totalWeight;
+  const scale = serving / finalWeight;
   const per = {};
   Object.keys(t).forEach(k => per[k] = t[k] * scale);
-  return {per, total:t, serving, totalWeight};
+  return {per, total:t, serving, totalWeight, finalWeight, cooked: (!isNaN(cooked) && cooked > 0) ? cooked : null};
 }
  
 function renderIngredients() {
@@ -425,6 +438,19 @@ function updateResults() {
     document.getElementById('detail-rows').innerHTML = '';
     return;
   }
+  // Подсказка за теглото след готвене
+  const hintEl = document.getElementById('cooked-hint');
+  if (hintEl) {
+    if (r.cooked) {
+      const loss = Math.max(0, Math.round((1 - r.cooked / r.totalWeight) * 100));
+      hintEl.textContent = COOKED_T[currentLang].hintLoss(loss);
+      hintEl.style.color = 'var(--green)';
+    } else {
+      hintEl.textContent = COOKED_T[currentLang].hintOpt;
+      hintEl.style.color = 'var(--text3)';
+    }
+  }
+
   const p = r.per;
   document.getElementById('r-cal').textContent = Math.round(p.cal);
   document.getElementById('r-prot').textContent = p.prot.toFixed(1);
@@ -478,11 +504,13 @@ function updateLabel(r) {
     Object.keys(r.per).forEach(k => p[k] = r.per[k] * f);
     kJ = Math.round(p.cal * 4.184);
     salt = p.sodium * 2.5 / 1000;
-    satfatDisplay = '—';
+    satfatDisplay = (p.sat || 0).toFixed(1) + ' ' + t.g;
   }
   const name = document.getElementById('product-name').value || 'Product';
   document.getElementById('el-name').textContent = name;
-  document.getElementById('el-batch').textContent = `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g}`;
+  document.getElementById('el-batch').textContent = r.cooked
+    ? `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g} → ${r.cooked.toFixed(0)}${t.g}`
+    : `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g}`;
   document.getElementById('el-per100').textContent = t.per100;
   document.getElementById('el-rows').innerHTML = `
     <div class="el-row bold"><span>${t.energy}</span><span>${kJ} kJ / ${Math.round(p.cal)} kcal</span></div>

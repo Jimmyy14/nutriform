@@ -1139,3 +1139,20 @@ FOODS.forEach(f => {
     if (f.alg) FOOD_ALLERGENS[nm] = f.alg;
   }
 });
+
+// Наситени мастни киселини (г на 100 г) за основните мазни съставки — за пълен EU етикет.
+// Ключове: английски имена от FOODS (покриват всички езикови синоними) + няколко стари ключа.
+const SATFAT = {
+  'butter':51.4,'масло':51.4,'olive oil':13.8,'sunflower oil':10.3,'rapeseed oil':7.4,'palm oil':49.3,
+  'coconut oil':82.5,'кокосово масло':82.5,'margarine':15.0,'lard':39.0,
+  'milk':1.9,'whole milk':1.9,'skim milk':0.1,'milk powder':16.7,'cream':23.0,'sour cream':12.0,
+  'yogurt':2.1,'greek yogurt':3.2,'cottage cheese':2.7,'white cheese':13.0,'yellow cheese':18.0,
+  'cheddar':21.0,'parmesan':19.1,'mozzarella':12.1,'cream cheese':19.3,'whey protein':2.0,
+  'eggs':3.1,'chicken breast':1.0,'chicken thigh':4.0,'pork':5.2,'beef':6.0,'lamb':9.0,'turkey':2.3,
+  'minced meat':7.0,'ham':1.9,'bacon':14.0,'salami':10.0,'sausages':10.0,'salmon':3.1,'tuna':1.3,
+  'walnuts':6.1,'almonds':3.8,'hazelnuts':4.5,'peanuts':6.3,'cashews':7.8,'pistachios':5.6,
+  'sunflower seeds':4.5,'pumpkin seeds':8.7,'sesame seeds':7.0,'flaxseed':3.7,'chia seeds':3.3,
+  'dark chocolate':18.5,'milk chocolate':18.5,'white chocolate':19.6,'cocoa powder':8.1,
+  'peanut butter':10.3,'tahini':7.5,'desiccated coconut':57.2,'avocado':2.1,'авокадо':2.1,
+};
+Object.keys(SATFAT).forEach(k => { if (LOCAL_DB[k]) LOCAL_DB[k].sat = SATFAT[k]; });

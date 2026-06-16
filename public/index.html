@@ -124,6 +124,12 @@
               <span id="lbl-total-weight">Total batch weight:</span>
               <span id="total-weight-val" style="font-weight:600">0 g</span>
             </div>
+            <div class="total-row" style="align-items:center">
+              <span id="lbl-cooked-weight">Weight after cooking (g):</span>
+              <input type="number" id="cooked-weight" min="0" step="1" placeholder="—" oninput="onDataChange()"
+                style="width:90px; text-align:right; padding:4px 6px; font-size:13px; border:1px solid var(--border); border-radius:5px; background:var(--surface); color:var(--text); font-family:inherit;">
+            </div>
+            <div id="cooked-hint" style="font-size:11px; color:var(--text3); margin-top:4px;"></div>
           </div>
         </div>
       </div>
