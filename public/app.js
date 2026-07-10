@@ -34,6 +34,7 @@ function selectLang(lang) {
   currentLang = lang;
   document.getElementById('lang-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  track('app_open');
   applyTranslations();
   // Set defaults based on language
   if (lang === 'bg') {
@@ -740,6 +741,7 @@ function showTab(name) {
     document.getElementById('tab-btn-'+n).classList.toggle('active', n===name);
     document.getElementById('pane-'+n).classList.toggle('active', n===name);
   });
+  if (name === 'label') track('label_view'); // стигна ли до „уау" момента
 }
  
 // ─── PRINT ────────────────────────────────────────────────────────────────────
@@ -1525,10 +1527,10 @@ const LEAD_ENDPOINT = '/api/lead';
 let pendingExportFn = null;
 
 const GATE_T = {
-  bg: { title:'Свали етикета безплатно', desc:'Остави имейл, за да свалиш/отпечаташ етикета. Пращаме само важни ъпдейти по NutriForm — без спам.', submit:'Продължи →', cancel:'Откажи', invalid:'Въведи валиден имейл.', fine:'Прегледът на етикета на екрана остава безплатен и без имейл.' },
-  en: { title:'Download your label for free', desc:'Leave your email to download/print the label. We only send important NutriForm updates — no spam.', submit:'Continue →', cancel:'Cancel', invalid:'Enter a valid email.', fine:'On-screen label preview stays free, no email needed.' },
-  ru: { title:'Скачайте этикетку бесплатно', desc:'Оставьте email, чтобы скачать или распечатать этикетку. Присылаем только важные обновления NutriForm — без спама.', submit:'Продолжить →', cancel:'Отмена', invalid:'Введите корректный email.', fine:'Предпросмотр этикетки на экране остаётся бесплатным.' },
-  uk: { title:'Завантажте етикетку безкоштовно', desc:'Залиште email, щоб завантажити або роздрукувати етикетку. Надсилаємо лише важливі оновлення NutriForm — без спаму.', submit:'Продовжити →', cancel:'Скасувати', invalid:'Введіть коректний email.', fine:'Перегляд етикетки на екрані залишається безкоштовним.' },
+  bg: { title:'Свали етикета безплатно', desc:'Остави имейл, за да свалиш/отпечаташ етикета. Пращаме само важни ъпдейти по NutriForm — без спам.', submit:'Продължи →', cancel:'Откажи', invalid:'Въведи валиден имейл.', fine:'Прегледът на етикета на екрана остава безплатен и без имейл.', consentPre:'Като продължиш, се съгласяваш с', privacy:'политиката за поверителност' },
+  en: { title:'Download your label for free', desc:'Leave your email to download/print the label. We only send important NutriForm updates — no spam.', submit:'Continue →', cancel:'Cancel', invalid:'Enter a valid email.', fine:'On-screen label preview stays free, no email needed.', consentPre:'By continuing you agree to the', privacy:'privacy notice' },
+  ru: { title:'Скачайте этикетку бесплатно', desc:'Оставьте email, чтобы скачать или распечатать этикетку. Присылаем только важные обновления NutriForm — без спама.', submit:'Продолжить →', cancel:'Отмена', invalid:'Введите корректный email.', fine:'Предпросмотр этикетки на экране остаётся бесплатным.', consentPre:'Продолжая, вы соглашаетесь с', privacy:'политикой конфиденциальности' },
+  uk: { title:'Завантажте етикетку безкоштовно', desc:'Залиште email, щоб завантажити або роздрукувати етикетку. Надсилаємо лише важливі оновлення NutriForm — без спаму.', submit:'Продовжити →', cancel:'Скасувати', invalid:'Введіть коректний email.', fine:'Перегляд етикетки на екрані залишається безкоштовним.', consentPre:'Продовжуючи, ви погоджуєтесь з', privacy:'політикою конфіденційності' },
 };
 
 function hasLeadEmail() {
@@ -1538,6 +1540,7 @@ function hasLeadEmail() {
 // Извиква се от бутоните за export. Ако вече има имейл → export директно,
 // иначе показва модала и запомня коя export функция да пусне след това.
 function gateExport(fn) {
+  track('export_click');
   if (hasLeadEmail()) { fn(); return; }
   pendingExportFn = fn;
   const t = GATE_T[currentLang] || GATE_T.bg;
@@ -1546,6 +1549,9 @@ function gateExport(fn) {
   document.getElementById('lead-submit').textContent = t.submit;
   document.getElementById('lead-cancel').textContent = t.cancel;
   document.getElementById('lead-fine').textContent   = t.fine;
+  // Текстовете идват от GATE_T (наши), не от потребител — innerHTML е безопасен.
+  document.getElementById('lead-consent').innerHTML =
+    `${t.consentPre} <a href="/privacy" target="_blank" rel="noopener" style="color:var(--green)">${t.privacy}</a>.`;
   document.getElementById('lead-err').style.display  = 'none';
   const input = document.getElementById('lead-email');
   input.value = '';
@@ -1569,6 +1575,7 @@ function submitLeadEmail() {
     return;
   }
   try { localStorage.setItem(LEAD_KEY, email); } catch (e) {}
+  track('lead_submit');
   // Изпращане към endpoint-а — не блокира export-а.
   try {
     const productEl = document.getElementById('product-name');
@@ -1595,3 +1602,23 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && document.getElementById('lead-modal').style.display === 'flex') closeLeadModal();
 });
+
+// ─── АНОНИМЕН БРОЯЧ ЗА ФУНИЯТА ────────────────────────────────────────────────
+// Отговаря само на: колко влизат → колко стигат до етикета → колко дават имейл.
+// Без бисквитки, без идентификатор на човек. Всяко събитие се брои веднъж на
+// сесия (иначе едно цъкане напред-назад надува числата и фунията лъже).
+function track(event) {
+  try {
+    const key = 'nf_tracked_' + event;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch (e) { /* приватен режим — просто пращаме */ }
+  try {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event }),
+      keepalive: true, // да оцелее, ако човекът затвори таба веднага след клика
+    }).catch(() => {});
+  } catch (e) {}
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NutriForm — Поверителност</title>
+<meta name="description" content="Какви данни събира NutriForm, защо, къде се съхраняват и как да ги изтриете." />
+<meta name="robots" content="index, follow" />
+<link rel="icon" href="/icons/icon-192.png" />
+<style>
+  :root{
+    --green:#2f5233;--green-d:#213a25;--green-l:#e9f1ea;
+    --ink:#1a221b;--muted:#5c675e;--line:#e0e6e1;--bg:#f6f7f4;--white:#fff;
+    --font:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 22px}
+  nav{background:var(--white);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.15rem;text-decoration:none;color:var(--ink)}
+  .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--green)}
+  .back{font-size:.9rem;color:var(--green);text-decoration:none;font-weight:600}
+  header{padding:44px 0 8px}
+  h1{font-size:2rem;letter-spacing:-.01em;margin-bottom:8px}
+  .upd{color:var(--muted);font-size:.85rem}
+  main{padding:22px 0 60px}
+  h2{font-size:1.15rem;margin:30px 0 8px;letter-spacing:-.01em}
+  p{margin-bottom:12px;color:#2c352d}
+  ul{margin:0 0 14px 20px}
+  li{margin-bottom:7px}
+  .box{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0}
+  .box.hi{background:var(--green-l);border-color:#c3ddc6}
+  table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:.93rem}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:700;background:var(--white)}
+  code{background:var(--white);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.86em}
+  a{color:var(--green)}
+  footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-size:.85rem}
+  .en{margin-top:46px;padding-top:26px;border-top:2px solid var(--line)}
+  .en h1{font-size:1.5rem}
+  @media(max-width:640px){ h1{font-size:1.55rem} table{font-size:.86rem} }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a href="/" class="logo"><span class="dot"></span>NutriForm</a>
+  <a href="/" class="back">← Към приложението</a>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>Поверителност на данните</h1>
+  <div class="upd">Последна редакция: 10 юли 2026 г.</div>
+</div></header>
+
+<main><div class="wrap">
+
+  <div class="box hi">
+    <p style="margin:0"><b>Накратко:</b> рецептите ти стоят в твоя браузър и не се качват никъде. Искаме имейл само когато сваляш или печаташ етикет. Не ползваме рекламни бисквитки и не продаваме данни.</p>
+  </div>
+
+  <h2>1. Кой обработва данните</h2>
+  <p>NutriForm е личен проект на студент по хранителни технологии. Администратор на данните е <b>Димитър Николов</b>. Връзка: <a href="mailto:dimitraki234@abv.bg">dimitraki234@abv.bg</a>.</p>
+
+  <h2>2. Какво събираме и защо</h2>
+  <table>
+    <tr><th>Данни</th><th>Кога</th><th>Защо</th></tr>
+    <tr>
+      <td>Имейл адрес</td>
+      <td>Когато натиснеш „Разпечатай етикети" или „Спецификация (PDF)" за първи път</td>
+      <td>За да ти пращаме важни новини по NutriForm. Основание: <b>твоето съгласие</b> (чл. 6, ал. 1, б. „а" от ОРЗД).</td>
+    </tr>
+    <tr>
+      <td>Име на продукта, език, дата</td>
+      <td>Заедно с имейла</td>
+      <td>За да знаем в какъв бранш работиш и на какъв език да ти пишем.</td>
+    </tr>
+    <tr>
+      <td>Брой посещения на страница</td>
+      <td>При всяко зареждане</td>
+      <td>Статистика без бисквитки и без проследяване на отделния човек.</td>
+    </tr>
+  </table>
+
+  <p><b>Не записваме IP адреса ти до имейла.</b> IP се ползва само за миг в паметта на сървъра, за да ограничим злоупотреби (напр. 5 заявки в минута), и не се съхранява от нас.</p>
+
+  <h2>3. Какво НЕ напуска твоето устройство</h2>
+  <ul>
+    <li><b>Рецептите и съставките ти</b> — пазят се в браузъра (<code>localStorage</code>), на твоя компютър или телефон. Ние нямаме достъп до тях.</li>
+    <li><b>Данните за етикета</b> (производител, партида, срок и т.н.) — само в браузъра.</li>
+  </ul>
+  <p>Изключение: ако сам натиснеш <b>„AI анализ"</b> или <b>„Подобри рецептата"</b>, съставът на конкретната рецепта се изпраща към <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic</a>, за да върне отговора. Ако търсиш съставка, която я няма в базата, търсената дума отива към <a href="https://fdc.nal.usda.gov/" target="_blank" rel="noopener">USDA FoodData Central</a>. И в двата случая — само защото си натиснал бутона.</p>
+
+  <h2>4. Къде се пазят имейлите</h2>
+  <p>В <b>Upstash Redis</b>, сървър в Германия (Франкфурт), в рамките на ЕС. Достъп имаме само ние. Пазим ги, докато проектът съществува или докато не поискаш изтриване.</p>
+  <p>Доставчикът на хостинг е <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel</a>. Както при всеки уеб сървър, Vercel записва техническите заявки (вкл. IP) в свои системни дневници за кратък период — това е тяхна обработка, необходима за сигурността на услугата.</p>
+
+  <h2>5. Бисквитки</h2>
+  <p>NutriForm <b>не поставя бисквитки</b> за реклама или проследяване. Статистиката за посещения е анонимна и не ползва бисквитки. В браузъра си пазим само:</p>
+  <ul>
+    <li><code>nutriform_recipes_v1</code> — запазените ти рецепти;</li>
+    <li><code>nf_lead_email</code> — за да не те питаме за имейл втори път.</li>
+  </ul>
+  <p>И двете можеш да изтриеш по всяко време от настройките на браузъра си.</p>
+
+  <h2>6. Твоите права</h2>
+  <p>По ОРЗД (GDPR) имаш право да поискаш <b>достъп, поправка, изтриване</b> или <b>преносимост</b> на данните си, както и да <b>оттеглиш съгласието</b> си по всяко време. Пиши на <a href="mailto:dimitraki234@abv.bg">dimitraki234@abv.bg</a> — изтриваме имейла ти без въпроси.</p>
+  <p>Имаш и право на жалба до <a href="https://www.cpdp.bg/" target="_blank" rel="noopener">Комисията за защита на личните данни</a>.</p>
+
+  <h2>7. Промени</h2>
+  <p>Ако тази политика се промени, ще обновим датата най-горе.</p>
+
+  <!-- ─────────────── ENGLISH ─────────────── -->
+  <div class="en">
+    <h1>Privacy notice (English)</h1>
+    <p class="upd">Last updated: 10 July 2026</p>
+
+    <p><b>In short:</b> your recipes stay in your browser and are never uploaded. We ask for an email only when you download or print a label. No advertising cookies, no data selling.</p>
+
+    <h2>Controller</h2>
+    <p>NutriForm is a personal project by a food technology student. Data controller: <b>Dimitar Nikolov</b> — <a href="mailto:dimitraki234@abv.bg">dimitraki234@abv.bg</a>.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><b>Email address</b> — when you first click “Print labels” or “Product spec (PDF)”. Legal basis: your <b>consent</b> (Art. 6(1)(a) GDPR).</li>
+      <li><b>Product name, language, timestamp</b> — submitted together with the email.</li>
+      <li><b>Anonymous page views</b> — cookieless, no individual tracking.</li>
+    </ul>
+    <p>We do <b>not</b> store your IP address alongside your email. IP is used transiently, in server memory only, for abuse rate-limiting.</p>
+
+    <h2>What never leaves your device</h2>
+    <p>Your recipes, ingredients and label details live in your browser’s <code>localStorage</code>. We cannot see them. The only exceptions are when <i>you</i> press “AI analysis” / “Improve recipe” (the recipe is sent to Anthropic) or search for an unknown ingredient (the search term goes to USDA FoodData Central).</p>
+
+    <h2>Storage &amp; your rights</h2>
+    <p>Emails are stored in Upstash Redis, hosted in Frankfurt, Germany (EU). Hosting is provided by Vercel, whose server logs briefly retain technical request data including IP.</p>
+    <p>You may request access, rectification, erasure or portability of your data, and withdraw consent at any time, by emailing <a href="mailto:dimitraki234@abv.bg">dimitraki234@abv.bg</a>. You also have the right to lodge a complaint with your national data protection authority.</p>
+  </div>
+
+</div></main>
+
+<footer><div class="wrap">
+  NutriForm · Хранителни технологии · <a href="/">Приложение</a> · <a href="/lp">Начало</a>
+</div></footer>
+
+</body>
+</html>

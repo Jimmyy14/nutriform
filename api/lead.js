@@ -75,12 +75,15 @@ export default async function handler(req, res) {
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!valid) { res.status(400).json({ error: 'Invalid email' }); return; }
 
+    // Нарочно НЕ пазим IP. За rate-limit го ползваме временно в паметта, но
+    // да го записваме до имейла е лични данни без нужда (GDPR, чл. 5 „свеждане
+    // на данните до минимум"). Името на продукта го пазим, защото казва в
+    // какъв бранш е човекът — това е причината да събираме лийда.
     const lead = {
       email,
       product: (body.product || '').toString().slice(0, 200),
       lang: (body.lang || '').toString().slice(0, 5),
       ts: body.ts || new Date().toISOString(),
-      ip: req.headers['x-forwarded-for'] || '',
     };
 
     console.log('NEW LEAD:', JSON.stringify(lead));
