@@ -1574,9 +1574,13 @@ function submitLeadEmail() {
     err.style.display = 'block';
     return;
   }
+  // Записваме предварително, за да не бавим export-а, но ако сървърът НЕ приеме
+  // лийда (429/500/офлайн), изтриваме флага — иначе лийдът се губи мълчаливо и
+  // никога не питаме повторно. Потребителят при всички положения си взима
+  // етикета: неуспехът е наш проблем, не негов.
   try { localStorage.setItem(LEAD_KEY, email); } catch (e) {}
   track('lead_submit');
-  // Изпращане към endpoint-а — не блокира export-а.
+  const forgetLead = () => { try { localStorage.removeItem(LEAD_KEY); } catch (e) {} };
   try {
     const productEl = document.getElementById('product-name');
     fetch(LEAD_ENDPOINT, {
@@ -1588,8 +1592,11 @@ function submitLeadEmail() {
         lang: currentLang,
         ts: new Date().toISOString(),
       }),
-    }).catch(() => {});
-  } catch (e) {}
+      keepalive: true,
+    })
+      .then((r) => { if (!r.ok) forgetLead(); })   // 429 / 500 → ще попитаме пак
+      .catch(forgetLead);                          // офлайн / мрежова грешка
+  } catch (e) { forgetLead(); }
   const fn = pendingExportFn;
   closeLeadModal();
   if (typeof fn === 'function') fn();
