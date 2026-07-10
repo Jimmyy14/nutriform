@@ -9,25 +9,6 @@ let lastQuery = '';
 const aiQueryCache = {}; // кеш на AI резултатите по заявка (за да не пита повторно)
 // Референтни дневни приеми (EU 1169/2011, възрастен) — за колоната %РП
 const REF_INTAKE = { cal:2000, fat:70, sat:20, carb:260, sugar:90, prot:50, salt:6 };
-const RI_T = {
-  bg: { nutTitle:'Хранителна информация', per100:'на 100 г', perPortion:'на порция', ri:'%РП*', riNote:'* Референтен прием на средностатистически възрастен (8400 kJ / 2000 kcal).' },
-  en: { nutTitle:'Nutrition information', per100:'per 100 g', perPortion:'per portion', ri:'%RI*', riNote:'* Reference intake of an average adult (8400 kJ / 2000 kcal).' },
-  ru: { nutTitle:'Пищевая ценность', per100:'на 100 г', perPortion:'на порцию', ri:'%РСП*', riNote:'* Референтное потребление среднего взрослого (8400 кДж / 2000 ккал).' },
-  uk: { nutTitle:'Харчова цінність', per100:'на 100 г', perPortion:'на порцію', ri:'%РСП*', riNote:'* Референтне споживання середнього дорослого (8400 кДж / 2000 ккал).' },
-};
-const QUID_T = { bg:'Покажи % на съставките (QUID)', en:'Show ingredient % (QUID)', ru:'Показать % ингредиентов (QUID)', uk:'Показати % інгредієнтів (QUID)' };
-const EDIT_T = {
-  bg: { title:'Редакция на стойностите (на 100 г)', save:'Запази', cancel:'Откажи', srcEdit:'ред.', cal:'Калории (kcal)', prot:'Белтък (г)', carb:'Въглехидрати (г)', fat:'Мазнини (г)', sat:'Наситени (г)', fiber:'Влакнини (г)', sugar:'Захари (г)', sodium:'Натрий (мг)' },
-  en: { title:'Edit values (per 100 g)', save:'Save', cancel:'Cancel', srcEdit:'edit', cal:'Calories (kcal)', prot:'Protein (g)', carb:'Carbs (g)', fat:'Fat (g)', sat:'Saturates (g)', fiber:'Fibre (g)', sugar:'Sugars (g)', sodium:'Sodium (mg)' },
-  ru: { title:'Редактирование (на 100 г)', save:'Сохранить', cancel:'Отмена', srcEdit:'ред.', cal:'Калории (ккал)', prot:'Белки (г)', carb:'Углеводы (г)', fat:'Жиры (г)', sat:'Насыщенные (г)', fiber:'Клетчатка (г)', sugar:'Сахара (г)', sodium:'Натрий (мг)' },
-  uk: { title:'Редагування (на 100 г)', save:'Зберегти', cancel:'Скасувати', srcEdit:'ред.', cal:'Калорії (ккал)', prot:'Білки (г)', carb:'Вуглеводи (г)', fat:'Жири (г)', sat:'Насичені (г)', fiber:'Клітковина (г)', sugar:'Цукри (г)', sodium:'Натрій (мг)' },
-};
-const COOKED_T = {
-  bg: { label:'Тегло след готвене (г):', hintOpt:'По избор: за печени/варени продукти въведи теглото на готовия продукт — стойностите стават „на 100 г готов продукт".', hintLoss:(p)=>`Стойностите са на 100 г готов продукт (загуба на влага ${p}%).` },
-  en: { label:'Weight after cooking (g):', hintOpt:'Optional: for baked/cooked products enter the finished weight — values become "per 100 g of finished product".', hintLoss:(p)=>`Values are per 100 g of finished product (moisture loss ${p}%).` },
-  ru: { label:'Вес после готовки (г):', hintOpt:'Опционально: для печёных/варёных продуктов введите вес готового продукта — значения станут «на 100 г готового продукта».', hintLoss:(p)=>`Значения на 100 г готового продукта (потеря влаги ${p}%).` },
-  uk: { label:'Вага після готування (г):', hintOpt:'Опціонально: для печених/варених продуктів введіть вагу готового продукту — значення стануть «на 100 г готового продукту».', hintLoss:(p)=>`Значення на 100 г готового продукту (втрата вологи ${p}%).` },
-};
  
 // ─── LANGUAGE ─────────────────────────────────────────────────────────────────
 function selectLang(lang) {
@@ -581,23 +562,11 @@ const CLAIM_DEFS = [
   { k:'veryLowSalt', t:{bg:'Много ниско съдържание на сол',en:'Very low salt',ru:'Очень низкое содержание соли',uk:'Дуже низький вміст солі'}, ok:p => (p.sodium||0)<=48 },
   { k:'lowEnergy', t:{bg:'Ниско енергийно съдържание',en:'Low energy',ru:'Низкокалорийный',uk:'Низькокалорійний'}, ok:p => (p.cal||0)<=40 },
 ];
-const QUALITY_T = {
-  bg: { title:'Оценка и възможни твърдения', scoreLbl:'Nutri-Score', claimsLbl:'Възможни твърдения (Регл. 1924/2006)', none:'Няма допустими твърдения за този профил.', note:'Изчислено на 100 г. Твърденията се ползват само ако стойностите са потвърдени.' },
-  en: { title:'Score & possible claims', scoreLbl:'Nutri-Score', claimsLbl:'Possible claims (Reg. 1924/2006)', none:'No eligible claims for this profile.', note:'Calculated per 100 g. Use claims only with verified values.' },
-  ru: { title:'Оценка и возможные заявления', scoreLbl:'Nutri-Score', claimsLbl:'Возможные заявления (Регл. 1924/2006)', none:'Нет допустимых заявлений для этого профиля.', note:'Рассчитано на 100 г. Используйте заявления только с подтверждёнными значениями.' },
-  uk: { title:'Оцінка та можливі твердження', scoreLbl:'Nutri-Score', claimsLbl:'Можливі твердження (Регл. 1924/2006)', none:'Немає допустимих тверджень для цього профілю.', note:'Розраховано на 100 г. Використовуйте твердження лише з підтвердженими значеннями.' },
-};
 const NUTRI_COLORS = { A:'#2a8a3e', B:'#85bb2f', C:'#f5c518', D:'#ef8200', E:'#e1342a' };
 
 // ─── Лепкава лента с резултата (телефон) ──────────────────────────────────────
 // На тесен екран резултатите падат под целия формуляр. Лентата държи
 // калориите и Nutri-Score пред очите и води до етикета с едно цъкане.
-const QUICKBAR_T = {
-  bg: { kcal:'ккал', per:'на 100 г', cta:'Виж етикета →', empty:'Добави съставка' },
-  en: { kcal:'kcal', per:'per 100 g', cta:'See label →', empty:'Add an ingredient' },
-  ru: { kcal:'ккал', per:'на 100 г', cta:'Смотреть этикетку →', empty:'Добавьте ингредиент' },
-  uk: { kcal:'ккал', per:'на 100 г', cta:'Дивись етикетку →', empty:'Додай інгредієнт' },
-};
 
 function renderQuickBar(p100) {
   const bar = document.getElementById('quick-bar');
@@ -1056,7 +1025,6 @@ function printLabels() {
 }
 
 // ─── BARCODE (EAN-13) ────────────────────────────────────────────────────────
-const BARCODE_T = { bg:'Баркод (EAN-13)', en:'Barcode (EAN-13)', ru:'Штрихкод (EAN-13)', uk:'Штрихкод (EAN-13)' };
 function ean13Svg(input) {
   let d = (input || '').replace(/\D/g, '');
   if (d.length !== 12 && d.length !== 13) return '';
@@ -1088,26 +1056,12 @@ function renderBarcode() {
 }
 
 // ─── PRODUCT SPEC SHEET (PDF чрез печат) ──────────────────────────────────────
-const SPEC_T = {
-  bg: { btn:'📄 Спецификация (PDF)', title:'Продуктова спецификация', batch:'Партида', serving:'Порция', date:'Дата', nutri:'Хранителна информация', comp:'Състав', allerg:'Алергени', score:'Nutri-Score' },
-  en: { btn:'📄 Product spec (PDF)', title:'Product specification', batch:'Batch', serving:'Serving', date:'Date', nutri:'Nutrition information', comp:'Ingredients', allerg:'Allergens', score:'Nutri-Score' },
-  ru: { btn:'📄 Спецификация (PDF)', title:'Спецификация продукта', batch:'Партия', serving:'Порция', date:'Дата', nutri:'Пищевая ценность', comp:'Состав', allerg:'Аллергены', score:'Nutri-Score' },
-  uk: { btn:'📄 Специфікація (PDF)', title:'Специфікація продукту', batch:'Партія', serving:'Порція', date:'Дата', nutri:'Харчова цінність', comp:'Склад', allerg:'Алергени', score:'Nutri-Score' },
-};
-// Резервно име на етикета, ако полето „Наименование" е празно.
-const UNNAMED_T = { bg:'Вашият продукт', en:'Your product', ru:'Ваш продукт', uk:'Ваш продукт' };
 function productLabelName() {
   return document.getElementById('product-name').value.trim()
     || UNNAMED_T[currentLang] || UNNAMED_T.bg;
 }
 
 // ─── ЗАДЪЛЖИТЕЛНИ ДАННИ ЗА ЕТИКЕТА (EU 1169/2011) ─────────────────────────────
-const LABELINFO_T = {
-  bg: { title:'Данни за етикета (EU 1169/2011)', producer:'Производител', net:'Нетно тегло', best:'Най-добър до', batch:'Партида', origin:'Произход', storage:'Съхранение', bg:'Фон' },
-  en: { title:'Label details (EU 1169/2011)', producer:'Manufacturer', net:'Net weight', best:'Best before', batch:'Batch', origin:'Origin', storage:'Storage', bg:'Background' },
-  ru: { title:'Данные этикетки (EU 1169/2011)', producer:'Производитель', net:'Нетто', best:'Годен до', batch:'Партия', origin:'Происхождение', storage:'Хранение', bg:'Фон' },
-  uk: { title:'Дані етикетки (EU 1169/2011)', producer:'Виробник', net:'Нетто', best:'Придатний до', batch:'Партія', origin:'Походження', storage:'Зберігання', bg:'Фон' },
-};
 function renderLabelInfo() {
   const el = document.getElementById('el-info');
   if (!el) return;
@@ -1280,12 +1234,6 @@ function rejectProposal() {
  
 // ─── SAVED RECIPES (запазени рецепти / история — localStorage) ────────────────
 const SAVED_KEY = 'nutriform_recipes_v1';
-const SAVED_T = {
-  bg: { title:'Запазени рецепти', save:'💾 Запази рецептата', none:'Все още няма запазени рецепти.', load:'Зареди', del:'Изтрий', namePrompt:'Име на рецептата:', confirmDel:'Да изтрия ли тази рецепта?', savedMsg:'✓ Рецептата е запазена', loadedMsg:'✓ Рецептата е заредена', ingShort:'съст.' },
-  en: { title:'Saved recipes', save:'💾 Save recipe', none:'No saved recipes yet.', load:'Load', del:'Delete', namePrompt:'Recipe name:', confirmDel:'Delete this recipe?', savedMsg:'✓ Recipe saved', loadedMsg:'✓ Recipe loaded', ingShort:'ing.' },
-  ru: { title:'Сохранённые рецепты', save:'💾 Сохранить рецепт', none:'Пока нет сохранённых рецептов.', load:'Загрузить', del:'Удалить', namePrompt:'Название рецепта:', confirmDel:'Удалить этот рецепт?', savedMsg:'✓ Рецепт сохранён', loadedMsg:'✓ Рецепт загружен', ingShort:'ингр.' },
-  uk: { title:'Збережені рецепти', save:'💾 Зберегти рецепт', none:'Поки немає збережених рецептів.', load:'Завантажити', del:'Видалити', namePrompt:'Назва рецепта:', confirmDel:'Видалити цей рецепт?', savedMsg:'✓ Рецепт збережено', loadedMsg:'✓ Рецепт завантажено', ingShort:'інгр.' },
-};
 
 function getSavedRecipes() {
   try { return JSON.parse(localStorage.getItem(SAVED_KEY)) || []; } catch(e) { return []; }
@@ -1394,62 +1342,6 @@ function renderSavedRecipes() {
 }
 
 // ─── ДОБАВКИ (E-номера, задължителни на етикета по Регламент 1169/2011) ───────
-const ADD_FN = {
-  preservative: { bg:'консервант', en:'preservative', ru:'консервант', uk:'консервант' },
-  antioxidant:  { bg:'антиоксидант', en:'antioxidant', ru:'антиоксидант', uk:'антиоксидант' },
-  acidity:      { bg:'регулатор на киселинност', en:'acidity regulator', ru:'регулятор кислотности', uk:'регулятор кислотності' },
-  emulsifier:   { bg:'емулгатор', en:'emulsifier', ru:'эмульгатор', uk:'емульгатор' },
-  thickener:    { bg:'сгъстител', en:'thickener', ru:'загуститель', uk:'загусник' },
-  raising:      { bg:'набухвател', en:'raising agent', ru:'разрыхлитель', uk:'розпушувач' },
-  colour:       { bg:'оцветител', en:'colour', ru:'краситель', uk:'барвник' },
-  flavour:      { bg:'овкусител', en:'flavour enhancer', ru:'усилитель вкуса', uk:'підсилювач смаку' },
-  sweetener:    { bg:'подсладител', en:'sweetener', ru:'подсластитель', uk:'підсолоджувач' },
-  anticaking:   { bg:'антислепващ агент', en:'anti-caking agent', ru:'антислёживатель', uk:'антизлежувач' },
-  stabiliser:   { bg:'стабилизатор', en:'stabiliser', ru:'стабилизатор', uk:'стабілізатор' },
-};
-const ADD_CATALOG = [
-  { e:'E 200', fn:'preservative', name:{bg:'сорбинова киселина', en:'sorbic acid'} },
-  { e:'E 202', fn:'preservative', name:{bg:'калиев сорбат', en:'potassium sorbate'} },
-  { e:'E 211', fn:'preservative', name:{bg:'натриев бензоат', en:'sodium benzoate'} },
-  { e:'E 223', fn:'preservative', name:{bg:'натриев метабисулфит', en:'sodium metabisulphite'} },
-  { e:'E 250', fn:'preservative', name:{bg:'натриев нитрит', en:'sodium nitrite'} },
-  { e:'E 251', fn:'preservative', name:{bg:'натриев нитрат', en:'sodium nitrate'} },
-  { e:'E 252', fn:'preservative', name:{bg:'калиев нитрат', en:'potassium nitrate'} },
-  { e:'E 300', fn:'antioxidant', name:{bg:'аскорбинова киселина', en:'ascorbic acid'} },
-  { e:'E 301', fn:'antioxidant', name:{bg:'натриев аскорбат', en:'sodium ascorbate'} },
-  { e:'E 306', fn:'antioxidant', name:{bg:'токофероли (вит. E)', en:'tocopherols'} },
-  { e:'E 322', fn:'emulsifier', name:{bg:'лецитини', en:'lecithins'} },
-  { e:'E 471', fn:'emulsifier', name:{bg:'моно- и диглицериди на мастни киселини', en:'mono- and diglycerides of fatty acids'} },
-  { e:'E 270', fn:'acidity', name:{bg:'млечна киселина', en:'lactic acid'} },
-  { e:'E 296', fn:'acidity', name:{bg:'ябълчена киселина', en:'malic acid'} },
-  { e:'E 330', fn:'acidity', name:{bg:'лимонена киселина', en:'citric acid'} },
-  { e:'E 339', fn:'acidity', name:{bg:'натриеви фосфати', en:'sodium phosphates'} },
-  { e:'E 575', fn:'acidity', name:{bg:'глюконо-делта-лактон', en:'glucono-delta-lactone'} },
-  { e:'E 407', fn:'thickener', name:{bg:'карагенан', en:'carrageenan'} },
-  { e:'E 410', fn:'thickener', name:{bg:'брашно от рожкови семена', en:'locust bean gum'} },
-  { e:'E 412', fn:'thickener', name:{bg:'гума гуар', en:'guar gum'} },
-  { e:'E 415', fn:'thickener', name:{bg:'ксантанова гума', en:'xanthan gum'} },
-  { e:'E 440', fn:'thickener', name:{bg:'пектин', en:'pectin'} },
-  { e:'E 1422', fn:'thickener', name:{bg:'модифицирано нишесте', en:'modified starch'} },
-  { e:'E 500', fn:'raising', name:{bg:'натриеви карбонати (сода)', en:'sodium carbonates'} },
-  { e:'E 503', fn:'raising', name:{bg:'амониеви карбонати', en:'ammonium carbonates'} },
-  { e:'E 450', fn:'raising', name:{bg:'дифосфати', en:'diphosphates'} },
-  { e:'E 100', fn:'colour', name:{bg:'куркумин', en:'curcumin'} },
-  { e:'E 150a', fn:'colour', name:{bg:'карамел', en:'caramel'} },
-  { e:'E 160a', fn:'colour', name:{bg:'бета-каротин', en:'beta-carotene'} },
-  { e:'E 160c', fn:'colour', name:{bg:'екстракт от паприка', en:'paprika extract'} },
-  { e:'E 621', fn:'flavour', name:{bg:'мононатриев глутамат', en:'monosodium glutamate'} },
-  { e:'E 950', fn:'sweetener', name:{bg:'ацесулфам K', en:'acesulfame K'} },
-  { e:'E 951', fn:'sweetener', name:{bg:'аспартам', en:'aspartame'} },
-  { e:'E 960', fn:'sweetener', name:{bg:'стевиол гликозиди', en:'steviol glycosides'} },
-  { e:'E 551', fn:'anticaking', name:{bg:'силициев диоксид', en:'silicon dioxide'} },
-];
-const ADD_T = {
-  bg: { title:'Добавки (E-номера)', pick:'Добави добавка', add:'+ Добави', custom:'+ Друга добавка…', choose:'— избери —', customPrompt:'Въведи добавката (функция, име, E-номер):\nнапр. консервант (калиев сорбат, E 202)', composition:'Състав', auto:'авто' },
-  en: { title:'Additives (E numbers)', pick:'Add additive', add:'+ Add', custom:'+ Other additive…', choose:'— choose —', customPrompt:'Enter the additive (function, name, E number):\ne.g. preservative (potassium sorbate, E 202)', composition:'Ingredients', auto:'auto' },
-  ru: { title:'Добавки (E-номера)', pick:'Добавить добавку', add:'+ Добавить', custom:'+ Другая добавка…', choose:'— выбери —', customPrompt:'Введите добавку (функция, название, E-номер):\nнапр. консервант (сорбат калия, E 202)', composition:'Состав', auto:'авто' },
-  uk: { title:'Добавки (E-номери)', pick:'Додати добавку', add:'+ Додати', custom:'+ Інша добавка…', choose:'— обери —', customPrompt:'Введіть добавку (функція, назва, E-номер):\nнапр. консервант (сорбат калію, E 202)', composition:'Склад', auto:'авто' },
-};
 let selectedAdditives = [];
 
 function additiveName(a) {
@@ -1526,12 +1418,6 @@ const LEAD_KEY = 'nf_lead_email';
 const LEAD_ENDPOINT = '/api/lead';
 let pendingExportFn = null;
 
-const GATE_T = {
-  bg: { title:'Свали етикета безплатно', desc:'Остави имейл, за да свалиш/отпечаташ етикета. Пращаме само важни ъпдейти по NutriForm — без спам.', submit:'Продължи →', cancel:'Откажи', invalid:'Въведи валиден имейл.', fine:'Прегледът на етикета на екрана остава безплатен и без имейл.', consentPre:'Като продължиш, се съгласяваш с', privacy:'политиката за поверителност' },
-  en: { title:'Download your label for free', desc:'Leave your email to download/print the label. We only send important NutriForm updates — no spam.', submit:'Continue →', cancel:'Cancel', invalid:'Enter a valid email.', fine:'On-screen label preview stays free, no email needed.', consentPre:'By continuing you agree to the', privacy:'privacy notice' },
-  ru: { title:'Скачайте этикетку бесплатно', desc:'Оставьте email, чтобы скачать или распечатать этикетку. Присылаем только важные обновления NutriForm — без спама.', submit:'Продолжить →', cancel:'Отмена', invalid:'Введите корректный email.', fine:'Предпросмотр этикетки на экране остаётся бесплатным.', consentPre:'Продолжая, вы соглашаетесь с', privacy:'политикой конфиденциальности' },
-  uk: { title:'Завантажте етикетку безкоштовно', desc:'Залиште email, щоб завантажити або роздрукувати етикетку. Надсилаємо лише важливі оновлення NutriForm — без спаму.', submit:'Продовжити →', cancel:'Скасувати', invalid:'Введіть коректний email.', fine:'Перегляд етикетки на екрані залишається безкоштовним.', consentPre:'Продовжуючи, ви погоджуєтесь з', privacy:'політикою конфіденційності' },
-};
 
 function hasLeadEmail() {
   try { return !!localStorage.getItem(LEAD_KEY); } catch (e) { return false; }
