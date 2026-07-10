@@ -350,8 +350,8 @@
             <input type="number" id="label-copies" value="6" min="1" max="30">
           </div>
         </div>
-        <button class="btn btn-green" onclick="printLabels()" style="margin-top:12px" id="btn-print">🖨 Print labels</button>
-        <button class="btn" onclick="exportSpecSheet()" style="margin-top:8px; width:100%;" id="btn-spec">📄 Product spec (PDF)</button>
+        <button class="btn btn-green" onclick="gateExport(printLabels)" style="margin-top:12px" id="btn-print">🖨 Print labels</button>
+        <button class="btn" onclick="gateExport(exportSpecSheet)" style="margin-top:8px; width:100%;" id="btn-spec">📄 Product spec (PDF)</button>
       </div>
  
       <!-- AI -->
@@ -395,6 +395,23 @@
       <button id="em-save" class="btn btn-green" onclick="saveEditIngredient()"></button>
       <button id="em-cancel" class="btn" onclick="closeEditModal()"></button>
     </div>
+  </div>
+</div>
+
+<!-- Email gate за export (freemium lead capture) -->
+<div id="lead-modal" class="modal-overlay" style="display:none">
+  <div class="modal-card">
+    <h3 id="lead-title" class="modal-title"></h3>
+    <p id="lead-desc" style="font-size:13px;color:var(--text2);margin-bottom:12px"></p>
+    <div class="field">
+      <input type="email" id="lead-email" placeholder="you@example.com" autocomplete="email" style="width:100%">
+    </div>
+    <div id="lead-err" style="display:none;color:#c0483b;font-size:12px;margin-bottom:8px"></div>
+    <div class="em-actions" style="display:flex;gap:8px">
+      <button id="lead-submit" class="btn btn-green" onclick="submitLeadEmail()"></button>
+      <button id="lead-cancel" class="btn" onclick="closeLeadModal()"></button>
+    </div>
+    <p id="lead-fine" style="font-size:11px;color:var(--text3);margin-top:10px"></p>
   </div>
 </div>
 

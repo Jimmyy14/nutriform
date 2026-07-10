@@ -1460,3 +1460,80 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.ing-search-wrap') && !e.target.closest('#suggestions')) hideSuggestions();
 });
 document.getElementById('serving-size').addEventListener('input', onDataChange);
+
+// ─── EMAIL GATE ЗА EXPORT (freemium lead capture) ────────────────────────────
+const LEAD_KEY = 'nf_lead_email';
+const LEAD_ENDPOINT = '/api/lead';
+let pendingExportFn = null;
+
+const GATE_T = {
+  bg: { title:'Свали етикета безплатно', desc:'Остави имейл, за да свалиш/отпечаташ етикета. Пращаме само важни ъпдейти по NutriForm — без спам.', submit:'Продължи →', cancel:'Откажи', invalid:'Въведи валиден имейл.', fine:'Прегледът на етикета на екрана остава безплатен и без имейл.' },
+  en: { title:'Download your label for free', desc:'Leave your email to download/print the label. We only send important NutriForm updates — no spam.', submit:'Continue →', cancel:'Cancel', invalid:'Enter a valid email.', fine:'On-screen label preview stays free, no email needed.' },
+  ru: { title:'Скачайте этикетку бесплатно', desc:'Оставьте email, чтобы скачать или распечатать этикетку. Присылаем только важные обновления NutriForm — без спама.', submit:'Продолжить →', cancel:'Отмена', invalid:'Введите корректный email.', fine:'Предпросмотр этикетки на экране остаётся бесплатным.' },
+  uk: { title:'Завантажте етикетку безкоштовно', desc:'Залиште email, щоб завантажити або роздрукувати етикетку. Надсилаємо лише важливі оновлення NutriForm — без спаму.', submit:'Продовжити →', cancel:'Скасувати', invalid:'Введіть коректний email.', fine:'Перегляд етикетки на екрані залишається безкоштовним.' },
+};
+
+function hasLeadEmail() {
+  try { return !!localStorage.getItem(LEAD_KEY); } catch (e) { return false; }
+}
+
+// Извиква се от бутоните за export. Ако вече има имейл → export директно,
+// иначе показва модала и запомня коя export функция да пусне след това.
+function gateExport(fn) {
+  if (hasLeadEmail()) { fn(); return; }
+  pendingExportFn = fn;
+  const t = GATE_T[currentLang] || GATE_T.bg;
+  document.getElementById('lead-title').textContent  = t.title;
+  document.getElementById('lead-desc').textContent   = t.desc;
+  document.getElementById('lead-submit').textContent = t.submit;
+  document.getElementById('lead-cancel').textContent = t.cancel;
+  document.getElementById('lead-fine').textContent   = t.fine;
+  document.getElementById('lead-err').style.display  = 'none';
+  const input = document.getElementById('lead-email');
+  input.value = '';
+  document.getElementById('lead-modal').style.display = 'flex';
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeLeadModal() {
+  document.getElementById('lead-modal').style.display = 'none';
+  pendingExportFn = null;
+}
+
+function submitLeadEmail() {
+  const t = GATE_T[currentLang] || GATE_T.bg;
+  const email = (document.getElementById('lead-email').value || '').trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!valid) {
+    const err = document.getElementById('lead-err');
+    err.textContent = t.invalid;
+    err.style.display = 'block';
+    return;
+  }
+  try { localStorage.setItem(LEAD_KEY, email); } catch (e) {}
+  // Изпращане към endpoint-а — не блокира export-а.
+  try {
+    const productEl = document.getElementById('product-name');
+    fetch(LEAD_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        product: productEl ? productEl.value : '',
+        lang: currentLang,
+        ts: new Date().toISOString(),
+      }),
+    }).catch(() => {});
+  } catch (e) {}
+  const fn = pendingExportFn;
+  closeLeadModal();
+  if (typeof fn === 'function') fn();
+}
+
+// Позволи затваряне на модала с клик върху фона или Esc
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'lead-modal') closeLeadModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('lead-modal').style.display === 'flex') closeLeadModal();
+});
