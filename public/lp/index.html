@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NutriForm — хранителна стойност и EU етикет за минути</title>
+<meta name="description" content="Въведи съставките — NutriForm смята хранителната стойност, Nutri-Score, разрешените твърдения и прави готов етикет по Регламент 1169/2011. Безплатно, в браузъра." />
+<link rel="icon" href="/icons/icon-192.png" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="NutriForm — хранителна стойност и EU етикет за минути" />
+<meta property="og:description" content="Въведи съставките — NutriForm смята калориите, Nutri-Score и прави готов етикет по 1169/2011. Безплатно, без регистрация." />
+<meta property="og:image" content="/icons/icon-512.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  :root{
+    --green:#2f5233;--green-2:#3d6b42;--green-d:#213a25;--green-l:#e9f1ea;
+    --olive:#8a6d1f;--ink:#1a221b;--muted:#5c675e;--line:#e0e6e1;
+    --bg:#f6f7f4;--white:#fff;--amber-l:#fbf3df;--red:#c0483b;
+    --radius:16px;--shadow:0 14px 40px rgba(33,58,37,.13);
+    --font:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  h1,h2,h3{line-height:1.13;letter-spacing:-.01em}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;font-weight:700;
+    font-size:1.02rem;padding:15px 28px;border-radius:999px;text-decoration:none;border:0;cursor:pointer;
+    box-shadow:var(--shadow);transition:transform .15s,background .15s}
+  .btn:hover{background:var(--green-d);transform:translateY(-2px)}
+  .btn.small{padding:11px 20px;font-size:.92rem}
+  .btn.ghost{background:transparent;color:var(--green);box-shadow:none;border:1.5px solid var(--green)}
+  .btn.ghost:hover{background:var(--green-l)}
+  .btn.big{font-size:1.15rem;padding:18px 40px}
+  .tag{display:inline-block;background:var(--green-l);color:var(--green-d);font-weight:700;
+    font-size:.8rem;padding:6px 14px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase}
+
+  nav{position:sticky;top:0;z-index:20;background:rgba(246,247,244,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.15rem}
+  .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--green-2)}
+
+  /* HERO */
+  header{padding:56px 0 30px;background:radial-gradient(1100px 460px at 50% -40%,var(--green-l),transparent);text-align:center}
+  header h1{font-size:2.9rem;margin:16px auto 14px;max-width:16ch}
+  header h1 span{color:var(--green-2)}
+  .lead{font-size:1.2rem;color:var(--muted);max-width:56ch;margin:0 auto 26px}
+  .cta-row{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+  .trust{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:22px;font-size:.85rem;color:var(--muted)}
+  .trust span{display:flex;align-items:center;gap:7px}
+  .check{width:17px;height:17px;flex:none;color:var(--green-2)}
+
+  /* SHOT */
+  .shot{max-width:1020px;margin:38px auto 0;padding:0 22px}
+  .shot svg{width:100%;height:auto;display:block;border-radius:14px;box-shadow:var(--shadow)}
+  .shot .cap{text-align:center;color:var(--muted);font-size:.85rem;margin-top:12px}
+
+  section{padding:52px 0}
+  .center{text-align:center}
+  .kicker{color:var(--green-2);font-weight:800;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+  h2{font-size:1.95rem;margin:10px 0 12px}
+  .sub{color:var(--muted);max-width:62ch;margin:0 auto}
+
+  /* BEFORE/AFTER */
+  .ba{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:stretch;margin-top:34px}
+  .ba .col{border-radius:var(--radius);padding:24px}
+  .before{background:#fbeeec;border:1px solid #f0cfc9}
+  .after{background:var(--green-l);border:1px solid #c3ddc6}
+  .ba h3{font-size:1.05rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .ba ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .ba li{font-size:.95rem;display:flex;gap:9px;align-items:flex-start}
+  .ba .mk{flex:none;font-weight:800}
+  .before .mk{color:var(--red)}.after .mk{color:var(--green-2)}
+  .ba .arrow{display:grid;place-items:center;font-size:1.6rem;color:var(--muted)}
+
+  .panel{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:42px}
+  .step{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px;position:relative}
+  .step .num{position:absolute;top:-14px;left:18px;width:32px;height:32px;border-radius:50%;
+    background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800;box-shadow:var(--shadow)}
+  .step svg{display:block;width:100%;height:auto;border-radius:10px;background:var(--green-l);margin:12px 0 14px}
+  .step h3{font-size:1.05rem;margin-bottom:4px}.step p{color:var(--muted);font-size:.92rem}
+
+  .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .fcard{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:22px;text-align:left}
+  .fcard .ico{font-size:1.55rem}.fcard h3{font-size:1.06rem;margin:10px 0 6px}.fcard p{color:var(--muted);font-size:.93rem}
+
+  /* OUTPUT SHOWCASE */
+  .out{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:30px}
+  .out .label-svg{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+  .out ul{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:14px}
+  .out li{display:flex;gap:12px;align-items:flex-start}
+  .out .b{width:26px;height:26px;border-radius:7px;background:var(--green-l);color:var(--green-d);display:grid;place-items:center;flex:none;font-weight:800;font-size:.85rem}
+  .out b{display:block}.out small{color:var(--muted)}
+
+  .why{background:linear-gradient(180deg,var(--green-l),var(--bg))}
+  .why-box{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:30px;display:flex;gap:22px;align-items:center;max-width:790px;margin:26px auto 0}
+  .avatar{width:74px;height:74px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:1.15rem;font-weight:800;flex:none}
+  .why-box p{color:var(--muted)}.why-box b{color:var(--ink)}
+
+  .offer{background:var(--green-d);color:#fff;text-align:center}
+  .offer .kicker{color:#9ec7a3}.offer h2{color:#fff}.offer .sub{color:#cde0cf;margin-bottom:26px}
+  .offer .note{margin-top:16px;font-size:.9rem;color:#9ec7a3}
+
+  .faq{max-width:760px;margin:0 auto}
+  details{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:12px}
+  details summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  details summary::-webkit-details-marker{display:none}
+  details summary::after{content:'+';color:var(--green-2);font-weight:800;font-size:1.3rem}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);margin-top:10px;font-size:.95rem}
+  .disc{background:var(--amber-l);border:1px solid #eeddb4;color:#6f5410;border-radius:12px;padding:14px 16px;font-size:.85rem;max-width:760px;margin:22px auto 0;text-align:center}
+
+  footer{background:var(--ink);color:#c3cec4;padding:32px 0;font-size:.86rem}
+  footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+  .logo.light{color:#fff}
+
+  @media(max-width:820px){
+    header h1{font-size:2.1rem}
+    .ba{grid-template-columns:1fr}.ba .arrow{transform:rotate(90deg)}
+    .steps,.feat,.out{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo"><span class="dot"></span>NutriForm</div>
+  <a href="/" class="btn small">Отвори приложението →</a>
+</div></nav>
+
+<!-- HERO -->
+<header><div class="wrap">
+  <span class="tag">AI Recipe &amp; Nutrition Formulator</span>
+  <h1>Хранителна стойност и <span>EU етикет</span> за минути.</h1>
+  <p class="lead">Въвеждаш съставките — NutriForm смята калориите, дава ти Nutri-Score, разрешените твърдения и готов етикет по Регламент 1169/2011. Безплатно, в браузъра, без регистрация.</p>
+  <div class="cta-row">
+    <a href="/" class="btn big">Отвори NutriForm →</a>
+    <a href="#how" class="btn ghost">Виж как работи</a>
+  </div>
+  <div class="trust">
+    <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Nutri-Score A–E</span>
+    <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Етикет по 1169/2011</span>
+    <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Твърдения по 1924/2006</span>
+    <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>4 езика</span>
+  </div>
+</div>
+
+<!-- REAL UI RECREATION -->
+<div class="shot">
+  <svg viewBox="0 0 1040 612" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif">
+    <rect x="1" y="1" width="1038" height="610" rx="14" fill="#fff" stroke="#dfe4df"/>
+    <!-- browser bar -->
+    <path d="M1 15 A14 14 0 0 1 15 1 H1025 A14 14 0 0 1 1039 15 V40 H1 Z" fill="#eef1ed"/>
+    <circle cx="26" cy="20" r="5" fill="#f2685f"/><circle cx="45" cy="20" r="5" fill="#f6c350"/><circle cx="64" cy="20" r="5" fill="#54c05e"/>
+    <rect x="360" y="10" width="320" height="21" rx="10" fill="#fff" stroke="#e0e6e1"/>
+    <text x="520" y="25" text-anchor="middle" font-size="11.5" fill="#5c675e">🔒 nutriform-seven.vercel.app</text>
+    <!-- app bg -->
+    <rect x="1" y="40" width="1038" height="571" fill="#f6f7f4"/>
+    <!-- app top bar -->
+    <circle cx="26" cy="66" r="5" fill="#3d6b42"/><text x="40" y="71" font-size="16" font-weight="800" fill="#1a221b">NutriForm</text>
+    <text x="880" y="70" text-anchor="end" font-size="11.5" fill="#8a938c">Хранителни технологии</text>
+    <rect x="892" y="56" width="60" height="24" rx="12" fill="#fff" stroke="#e0e6e1"/><text x="922" y="71" text-anchor="middle" font-size="11" fill="#5c675e">🌐 Език</text>
+
+    <!-- left tabs -->
+    <rect x="22" y="92" width="300" height="34" rx="9" fill="#2f5233"/><text x="172" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">🍞 Храни за хора</text>
+    <rect x="330" y="92" width="300" height="34" rx="9" fill="#fff" stroke="#e0e6e1"/><text x="480" y="114" text-anchor="middle" font-size="13" fill="#5c675e">🐕 Храни за животни</text>
+
+    <!-- left: product info card -->
+    <rect x="22" y="138" width="608" height="104" rx="12" fill="#fff" stroke="#e6ebe6"/>
+    <text x="40" y="164" font-size="12.5" font-weight="700" fill="#1a221b">📋 Информация за продукта</text>
+    <text x="40" y="188" font-size="9.5" letter-spacing=".05em" fill="#8a938c">НАИМЕНОВАНИЕ НА ПРОДУКТА</text>
+    <rect x="40" y="196" width="400" height="32" rx="7" fill="#fff" stroke="#2f5233"/><text x="52" y="217" font-size="12.5" fill="#1a221b">Протеинов хляб с коприва</text>
+    <text x="470" y="188" font-size="9.5" letter-spacing=".05em" fill="#8a938c">ПОРЦИЯ (Г)</text>
+    <rect x="470" y="196" width="140" height="32" rx="7" fill="#fff" stroke="#e0e6e1"/><text x="482" y="217" font-size="12.5" fill="#1a221b">100</text>
+
+    <!-- left: ingredients card -->
+    <rect x="22" y="252" width="608" height="336" rx="12" fill="#fff" stroke="#e6ebe6"/>
+    <text x="40" y="278" font-size="12.5" font-weight="700" fill="#1a221b">🥬 Съставки</text>
+    <text x="40" y="304" font-size="9.5" letter-spacing=".05em" fill="#8a938c">СЪСТАВКА</text>
+    <text x="470" y="304" text-anchor="end" font-size="9.5" letter-spacing=".05em" fill="#8a938c">КОЛИЧЕСТВО (Г)</text>
+    <text x="600" y="304" text-anchor="end" font-size="9.5" letter-spacing=".05em" fill="#8a938c">ККАЛ</text>
+    <line x1="40" y1="314" x2="612" y2="314" stroke="#eef1ed"/>
+    <!-- rows -->
+    <g font-size="12.5" fill="#1a221b">
+      <text x="40" y="342">пълнозърнесто брашно</text><rect x="196" y="330" width="38" height="16" rx="4" fill="#e9f1ea"/><text x="215" y="342" text-anchor="middle" font-size="9" fill="#3d6b42">база</text>
+      <rect x="360" y="328" width="118" height="26" rx="6" fill="#f4f6f3" stroke="#e0e6e1"/><text x="470" y="345" text-anchor="end">400</text><text x="600" y="345" text-anchor="end" fill="#5c675e">1360</text>
+      <text x="40" y="390">вода</text><rect x="72" y="378" width="38" height="16" rx="4" fill="#e9f1ea"/><text x="91" y="390" text-anchor="middle" font-size="9" fill="#3d6b42">база</text>
+      <rect x="360" y="376" width="118" height="26" rx="6" fill="#f4f6f3" stroke="#e0e6e1"/><text x="470" y="393" text-anchor="end">280</text><text x="600" y="393" text-anchor="end" fill="#5c675e">0</text>
+      <text x="40" y="438">квас</text><rect x="76" y="426" width="38" height="16" rx="4" fill="#e9f1ea"/><text x="95" y="438" text-anchor="middle" font-size="9" fill="#3d6b42">база</text>
+      <rect x="360" y="424" width="118" height="26" rx="6" fill="#f4f6f3" stroke="#e0e6e1"/><text x="470" y="441" text-anchor="end">80</text><text x="600" y="441" text-anchor="end" fill="#5c675e">43</text>
+      <text x="40" y="486">сол</text><rect x="66" y="474" width="38" height="16" rx="4" fill="#e9f1ea"/><text x="85" y="486" text-anchor="middle" font-size="9" fill="#3d6b42">база</text>
+      <rect x="360" y="472" width="118" height="26" rx="6" fill="#f4f6f3" stroke="#e0e6e1"/><text x="470" y="489" text-anchor="end">9</text><text x="600" y="489" text-anchor="end" fill="#5c675e">0</text>
+    </g>
+    <line x1="40" y1="360" x2="612" y2="360" stroke="#f2f4f1"/><line x1="40" y1="408" x2="612" y2="408" stroke="#f2f4f1"/><line x1="40" y1="456" x2="612" y2="456" stroke="#f2f4f1"/>
+    <rect x="40" y="520" width="130" height="30" rx="8" fill="#2f5233"/><text x="105" y="540" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">+ Добави съставка</text>
+
+    <!-- right: results card -->
+    <rect x="648" y="92" width="368" height="496" rx="12" fill="#fff" stroke="#e6ebe6"/>
+    <text x="672" y="120" font-size="12.5" font-weight="800" fill="#2f5233">Хранене</text>
+    <text x="742" y="120" font-size="12.5" fill="#9aa39c">Emukem</text>
+    <text x="820" y="120" font-size="12.5" fill="#9aa39c">AI анализ</text>
+    <rect x="668" y="128" width="52" height="3" rx="2" fill="#2f5233"/>
+    <!-- stat boxes -->
+    <g>
+      <rect x="664" y="142" width="82" height="60" rx="9" fill="#f4f6f3"/><text x="705" y="174" text-anchor="middle" font-size="19" font-weight="800" fill="#1a221b">182</text><text x="705" y="190" text-anchor="middle" font-size="8" fill="#8a938c">ККАЛ</text>
+      <rect x="752" y="142" width="82" height="60" rx="9" fill="#f4f6f3"/><text x="793" y="174" text-anchor="middle" font-size="19" font-weight="800" fill="#1a221b">7.0</text><text x="793" y="190" text-anchor="middle" font-size="8" fill="#8a938c">БЕЛТЪК Г</text>
+      <rect x="840" y="142" width="82" height="60" rx="9" fill="#f4f6f3"/><text x="881" y="174" text-anchor="middle" font-size="19" font-weight="800" fill="#1a221b">38.6</text><text x="881" y="190" text-anchor="middle" font-size="8" fill="#8a938c">ВЪГЛЕХИД. Г</text>
+      <rect x="928" y="142" width="82" height="60" rx="9" fill="#f4f6f3"/><text x="969" y="174" text-anchor="middle" font-size="19" font-weight="800" fill="#1a221b">1.0</text><text x="969" y="190" text-anchor="middle" font-size="8" fill="#8a938c">МАЗНИНИ Г</text>
+    </g>
+    <text x="664" y="228" font-size="10.5" fill="#8a938c">На порция 100 г</text>
+    <g font-size="12" fill="#1a221b"><text x="664" y="252">Хранителни влакна</text><text x="1010" y="252" text-anchor="end" font-weight="700">5.6 г</text>
+      <text x="664" y="276">Захари</text><text x="1010" y="276" text-anchor="end" font-weight="700">0.3 г</text>
+      <text x="664" y="300">Натрий</text><text x="1010" y="300" text-anchor="end" font-weight="700">455 мг</text></g>
+    <line x1="664" y1="238" x2="1010" y2="238" stroke="#eef1ed"/><line x1="664" y1="262" x2="1010" y2="262" stroke="#f4f6f3"/><line x1="664" y1="286" x2="1010" y2="286" stroke="#f4f6f3"/>
+    <text x="664" y="330" font-size="9.5" letter-spacing=".04em" fill="#8a938c">РАЗПРЕДЕЛЕНИЕ НА МАКРОНУТРИЕНТИ</text>
+    <g font-size="11" fill="#1a221b">
+      <text x="664" y="352">Белтък</text><text x="1010" y="352" text-anchor="end">15%</text>
+      <rect x="664" y="358" width="346" height="7" rx="3.5" fill="#e6ebe6"/><rect x="664" y="358" width="52" height="7" rx="3.5" fill="#2f5233"/>
+      <text x="664" y="384">Въглехид.</text><text x="1010" y="384" text-anchor="end">81%</text>
+      <rect x="664" y="390" width="346" height="7" rx="3.5" fill="#e6ebe6"/><rect x="664" y="390" width="280" height="7" rx="3.5" fill="#8a6d1f"/>
+      <text x="664" y="416">Мазнини</text><text x="1010" y="416" text-anchor="end">5%</text>
+      <rect x="664" y="422" width="346" height="7" rx="3.5" fill="#e6ebe6"/><rect x="664" y="422" width="20" height="7" rx="3.5" fill="#c0483b"/>
+    </g>
+    <text x="664" y="456" font-size="9.5" letter-spacing=".04em" fill="#8a938c">ОЦЕНКА И ВЪЗМОЖНИ ТВЪРДЕНИЯ</text>
+    <rect x="664" y="466" width="40" height="40" rx="9" fill="#2f5233"/><text x="684" y="493" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">A</text>
+    <text x="714" y="491" font-size="13" font-weight="700" fill="#1a221b">Nutri-Score</text>
+    <!-- claim chips -->
+    <g font-size="10" font-weight="700" fill="#233d26">
+      <rect x="664" y="520" width="150" height="22" rx="11" fill="#e9f1ea"/><text x="676" y="535">✓ Източник на белтък</text>
+      <rect x="822" y="520" width="160" height="22" rx="11" fill="#e9f1ea"/><text x="834" y="535">✓ Източник на влакнини</text>
+      <rect x="664" y="548" width="212" height="22" rx="11" fill="#e9f1ea"/><text x="676" y="563">✓ Ниско съдържание на мазнини</text>
+      <rect x="884" y="548" width="102" height="22" rx="11" fill="#e9f1ea"/><text x="896" y="563">✓ Без захари</text>
+    </g>
+  </svg>
+  <div class="cap">Реален изглед на NutriForm — една рецепта, всички стойности и оценки на живо.</div>
+</div>
+</header>
+
+<!-- BEFORE / AFTER -->
+<section><div class="wrap center">
+  <span class="kicker">Защо си струва</span>
+  <h2>От дни ръчна работа — до няколко минути</h2>
+  <div class="ba">
+    <div class="col before">
+      <h3>😮‍💨 Досегашният начин</h3>
+      <ul>
+        <li><span class="mk">✗</span> Часове сметки на макроси и %РП в Excel</li>
+        <li><span class="mk">✗</span> €50–150/месец за compliance софтуер</li>
+        <li><span class="mk">✗</span> Гадаене кои твърдения са позволени</li>
+        <li><span class="mk">✗</span> Отделно оформяне на етикета от нулата</li>
+      </ul>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col after">
+      <h3>✅ С NutriForm</h3>
+      <ul>
+        <li><span class="mk">✓</span> Въвеждаш съставки — стойностите излизат сами</li>
+        <li><span class="mk">✓</span> Безплатно, директно в браузъра</li>
+        <li><span class="mk">✓</span> Показва разрешените твърдения по 1924/2006</li>
+        <li><span class="mk">✓</span> Готов етикет по 1169/2011 на един клик</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- HOW -->
+<section class="panel" id="how"><div class="wrap center">
+  <span class="kicker">Как работи</span>
+  <h2>3 стъпки от съставки до готов етикет</h2>
+  <p class="sub">Без инсталация, без специални знания. Попълваш, виждаш, генерираш.</p>
+  <div class="steps">
+    <div class="step"><div class="num">1</div>
+      <svg viewBox="0 0 240 130"><rect width="240" height="130" fill="#e9f1ea"/>
+        <rect x="20" y="18" width="150" height="17" rx="4" fill="#fff" stroke="#c3ddc6"/><rect x="24" y="23" width="86" height="7" rx="3.5" fill="#9cc4a0"/>
+        <rect x="176" y="18" width="44" height="17" rx="4" fill="#fff" stroke="#c3ddc6"/><rect x="182" y="23" width="24" height="7" rx="3.5" fill="#c3ddc6"/>
+        <rect x="20" y="44" width="150" height="17" rx="4" fill="#fff" stroke="#c3ddc6"/><rect x="24" y="49" width="110" height="7" rx="3.5" fill="#9cc4a0"/>
+        <rect x="176" y="44" width="44" height="17" rx="4" fill="#fff" stroke="#c3ddc6"/><rect x="182" y="49" width="24" height="7" rx="3.5" fill="#c3ddc6"/>
+        <rect x="20" y="70" width="150" height="17" rx="4" fill="#fff" stroke="#c3ddc6"/><rect x="24" y="75" width="64" height="7" rx="3.5" fill="#9cc4a0"/>
+        <rect x="176" y="70" width="44" height="17" rx="4" fill="#fff" stroke="#c3ddc6"/><rect x="182" y="75" width="24" height="7" rx="3.5" fill="#c3ddc6"/>
+        <rect x="20" y="98" width="94" height="19" rx="6" fill="#2f5233"/><text x="67" y="111" text-anchor="middle" font-family="Segoe UI" font-size="10" font-weight="700" fill="#fff">+ Добави</text>
+      </svg>
+      <h3>Въведи съставки и грамажи</h3><p>Вградена база смята калориите и нутриентите на всяка съставка.</p>
+    </div>
+    <div class="step"><div class="num">2</div>
+      <svg viewBox="0 0 240 130"><rect width="240" height="130" fill="#e9f1ea"/>
+        <rect x="20" y="16" width="86" height="38" rx="8" fill="#fff" stroke="#c3ddc6"/><text x="34" y="38" font-family="Segoe UI" font-size="16" font-weight="800" fill="#1a221b">182</text><text x="34" y="49" font-family="Segoe UI" font-size="7.5" fill="#8a938c">KCAL</text>
+        <circle cx="196" cy="35" r="21" fill="#2f5233"/><text x="196" y="43" text-anchor="middle" font-family="Segoe UI" font-size="21" font-weight="800" fill="#fff">A</text><text x="122" y="30" font-family="Segoe UI" font-size="7.5" fill="#8a938c">Nutri-Score</text>
+        <rect x="20" y="68" width="200" height="8" rx="4" fill="#d5e6d7"/><rect x="20" y="68" width="36" height="8" rx="4" fill="#2f5233"/>
+        <rect x="20" y="82" width="200" height="8" rx="4" fill="#d5e6d7"/><rect x="20" y="82" width="150" height="8" rx="4" fill="#8a6d1f"/>
+        <rect x="20" y="104" width="72" height="15" rx="7.5" fill="#e9f1ea" stroke="#9cc4a0"/><text x="56" y="114.5" text-anchor="middle" font-family="Segoe UI" font-size="8" font-weight="700" fill="#233d26">✓ белтък</text>
+        <rect x="100" y="104" width="82" height="15" rx="7.5" fill="#e9f1ea" stroke="#9cc4a0"/><text x="141" y="114.5" text-anchor="middle" font-family="Segoe UI" font-size="8" font-weight="700" fill="#233d26">✓ без захари</text>
+      </svg>
+      <h3>Виж стойности, Nutri-Score и твърдения</h3><p>Макроси, %РП, оценка A–E и разрешените твърдения — автоматично.</p>
+    </div>
+    <div class="step"><div class="num">3</div>
+      <svg viewBox="0 0 240 130"><rect width="240" height="130" fill="#e9f1ea"/>
+        <rect x="58" y="10" width="124" height="110" rx="8" fill="#fff" stroke="#2f5233" stroke-width="2"/>
+        <text x="70" y="30" font-family="Segoe UI" font-size="9" font-weight="800" fill="#1a221b">Хран. информация</text><line x1="70" y1="36" x2="170" y2="36" stroke="#1a221b" stroke-width="2"/>
+        <rect x="70" y="44" width="54" height="6" rx="3" fill="#cfe0d1"/><rect x="146" y="44" width="24" height="6" rx="3" fill="#1a221b"/>
+        <rect x="70" y="56" width="44" height="6" rx="3" fill="#cfe0d1"/><rect x="150" y="56" width="20" height="6" rx="3" fill="#1a221b"/>
+        <rect x="70" y="68" width="60" height="6" rx="3" fill="#cfe0d1"/><rect x="146" y="68" width="24" height="6" rx="3" fill="#1a221b"/>
+        <rect x="70" y="80" width="40" height="6" rx="3" fill="#cfe0d1"/><rect x="150" y="80" width="20" height="6" rx="3" fill="#1a221b"/>
+        <rect x="70" y="98" width="100" height="15" rx="4" fill="#e9f1ea"/><text x="76" y="108.5" font-family="Segoe UI" font-size="7.5" font-weight="700" fill="#233d26">Съдържа: ГЛУТЕН, МЛЯКО</text>
+      </svg>
+      <h3>Генерирай EU 1169/2011 етикет</h3><p>Състав, алергени в получер, партида и поле за производител — готово за печат.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- FEATURES -->
+<section><div class="wrap center">
+  <span class="kicker">Функции</span>
+  <h2>Всичко за формулиране и етикет — на едно място</h2>
+  <div class="feat">
+    <div class="fcard"><div class="ico">🧮</div><h3>Автоматична хранителна стойност</h3><p>Енергия, мазнини, въглехидрати, захари, влакнини, белтък и сол — на 100 g и на порция, с %РП.</p></div>
+    <div class="fcard"><div class="ico">🏷️</div><h3>EU 1169/2011 етикет</h3><p>Готова декларация със състав, алергени в получер, партида и данни за производителя.</p></div>
+    <div class="fcard"><div class="ico">🅰️</div><h3>Nutri-Score</h3><p>Автоматична оценка A–E на продукта, изчислена от рецептата.</p></div>
+    <div class="fcard"><div class="ico">✅</div><h3>Разрешени твърдения</h3><p>Показва кои твърдения имаш право да ползваш по Регламент 1924/2006.</p></div>
+    <div class="fcard"><div class="ico">🤖</div><h3>AI анализ и оптимизация</h3><p>AI анализира рецептата и я подобрява към избрана цел — напр. повече белтък.</p></div>
+    <div class="fcard"><div class="ico">🐕🌍</div><h3>Храни за хора и животни · 4 езика</h3><p>Работи и за човешки храни, и за фуражи. Интерфейс на BG, EN, RU, UA.</p></div>
+  </div>
+</div></section>
+
+<!-- OUTPUT SHOWCASE -->
+<section class="panel"><div class="wrap">
+  <div class="center"><span class="kicker">Резултатът</span><h2>Готов етикет, а не сурови числа</h2></div>
+  <div class="out">
+    <div class="label-svg">
+      <svg viewBox="0 0 320 268" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+        <rect width="320" height="268" rx="8" fill="#fff" stroke="#2f5233" stroke-width="2"/>
+        <text x="16" y="30" font-family="Segoe UI" font-size="15" font-weight="800" fill="#1a221b">Хранителна информация</text>
+        <line x1="16" y1="40" x2="304" y2="40" stroke="#1a221b" stroke-width="3"/>
+        <text x="16" y="58" font-family="Segoe UI" font-size="10" fill="#5c675e">на 100 g</text>
+        <text x="250" y="58" text-anchor="end" font-family="Segoe UI" font-size="10" fill="#5c675e">на порция</text>
+        <text x="304" y="58" text-anchor="end" font-family="Segoe UI" font-size="10" fill="#5c675e">%РП</text>
+        <line x1="16" y1="66" x2="304" y2="66" stroke="#e0e6e1"/>
+        <g font-family="Segoe UI" font-size="11.5" fill="#1a221b">
+          <text x="16" y="84" font-weight="700">Енергийна стойност</text><text x="250" y="84" text-anchor="end">182 kcal</text><text x="304" y="84" text-anchor="end">9%</text>
+          <text x="16" y="104" font-weight="700">Мазнини</text><text x="250" y="104" text-anchor="end">1,0 g</text><text x="304" y="104" text-anchor="end">1%</text>
+          <text x="28" y="120" fill="#5c675e" font-size="10">от които наситени</text><text x="250" y="120" text-anchor="end" fill="#5c675e" font-size="10">0,0 g</text>
+          <text x="16" y="140" font-weight="700">Въглехидрати</text><text x="250" y="140" text-anchor="end">38,6 g</text><text x="304" y="140" text-anchor="end">15%</text>
+          <text x="28" y="156" fill="#5c675e" font-size="10">от които захари</text><text x="250" y="156" text-anchor="end" fill="#5c675e" font-size="10">0,3 g</text>
+          <text x="16" y="176" font-weight="700">Влакнини</text><text x="250" y="176" text-anchor="end">5,6 g</text>
+          <text x="16" y="196" font-weight="700">Белтъци</text><text x="250" y="196" text-anchor="end">7,0 g</text><text x="304" y="196" text-anchor="end">14%</text>
+          <text x="16" y="216" font-weight="700">Сол</text><text x="250" y="216" text-anchor="end">1,14 g</text><text x="304" y="216" text-anchor="end">19%</text>
+        </g>
+        <line x1="16" y1="94" x2="304" y2="94" stroke="#eef1ed"/><line x1="16" y1="130" x2="304" y2="130" stroke="#eef1ed"/><line x1="16" y1="166" x2="304" y2="166" stroke="#eef1ed"/><line x1="16" y1="186" x2="304" y2="186" stroke="#eef1ed"/><line x1="16" y1="206" x2="304" y2="206" stroke="#eef1ed"/>
+        <line x1="16" y1="226" x2="304" y2="226" stroke="#1a221b" stroke-width="2"/>
+        <text x="16" y="242" font-family="Segoe UI" font-size="10" fill="#1a221b"><tspan font-weight="700">Състав:</tspan> пълнозърнесто брашно, вода, квас, сол</text>
+        <rect x="12" y="250" width="296" height="14" rx="4" fill="#e9f1ea"/><text x="18" y="260" font-family="Segoe UI" font-size="9.5" font-weight="700" fill="#233d26">Съдържа: ГЛУТЕН (зърнени)</text>
+      </svg>
+    </div>
+    <div>
+      <h3 style="font-size:1.3rem;margin-bottom:6px">Оформен по регламента, готов за печат</h3>
+      <ul>
+        <li><span class="b">✓</span><div><b>Двойна колона на 100 g и на порция</b><small>С референтен прием (%РП), точно както изисква 1169/2011.</small></div></li>
+        <li><span class="b">✓</span><div><b>Алергените — автоматично в получер</b><small>Разпознати от състава и откроени по закон.</small></div></li>
+        <li><span class="b">✓</span><div><b>Състав по низходящо тегло + партида</b><small>Плюс поле за име и адрес на производителя.</small></div></li>
+        <li><span class="b">✓</span><div><b>Изчислени стойности или лабораторен анализ</b><small>Превключваш според етапа на продукта.</small></div></li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- WHY -->
+<section class="why"><div class="wrap center">
+  <span class="kicker">Зад проекта</span>
+  <h2>Направено от човек, който различава алерген от съставка</h2>
+  <div class="why-box">
+    <div class="avatar">УХТ</div>
+    <p style="text-align:left"><b>Създадено от студент по хранителни технологии (УХТ-Пловдив)</b>, специализиран в EU регламент 1169/2011, твърденията по 1924/2006 и формулации. Инструмент от човек в бранша — не поредният генеричен онлайн калкулатор.</p>
+  </div>
+</div></section>
+
+<!-- OFFER -->
+<section class="offer"><div class="wrap">
+  <span class="kicker">Пробвай сега</span>
+  <h2>Формулирай първия си продукт за минути</h2>
+  <p class="sub">Отвори NutriForm, въведи рецепта и виж хранителната стойност, Nutri-Score и готовия етикет на живо.</p>
+  <a href="/" class="btn big" style="background:#fff;color:#213a25">Отвори NutriForm безплатно →</a>
+  <div class="note">Без регистрация · директно в браузъра · BG / EN / RU / UA</div>
+</div></section>
+
+<!-- FAQ -->
+<section><div class="wrap">
+  <div class="center"><span class="kicker">Въпроси</span><h2>Често задавани</h2></div>
+  <div class="faq">
+    <details><summary>Безплатно ли е?</summary><p>Да. Отваряш приложението в браузъра и започваш веднага — без инсталация и без регистрация.</p></details>
+    <details><summary>За какви продукти работи?</summary><p>За храни за хора и за храни за животни (фуражи). Всякакви рецепти — печиво, напитки, добавки и др.</p></details>
+    <details><summary>Заместава ли лабораторен анализ?</summary><p>Не. Стойностите са изчислени (база данни USDA) и са за формулиране и чернова на етикет. За официален пазарен етикет може да е необходим лабораторен анализ съгласно Регламент (ЕС) 1169/2011.</p></details>
+    <details><summary>На какви езици е?</summary><p>Български, английски, руски и украински. Езикът се сменя от самото приложение.</p></details>
+  </div>
+  <div class="disc">⚠️ NutriForm е инструмент за формулиране и изчисление, не правен съвет. Финалната отговорност за етикета и съответствието остава на производителя.</div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="logo light"><span class="dot"></span> NutriForm</div>
+  <div>AI Recipe &amp; Nutrition Formulator · Хранителни технологии · © 2026</div>
+</div></footer>
+
+</body>
+</html>
