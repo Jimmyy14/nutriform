@@ -18,6 +18,31 @@ function rateLimited(ip) {
   return arr.length > MAX_PER_IP;
 }
 
+// ─── Запис в Upstash Redis (същите env vars като api/claude.js) ───────────────
+// Лийдовете се пазят вечно в списък `nf:leads` + set `nf:leads:emails` за
+// уникални имейли. Виждаш ги в Upstash → Data Browser. Ако Redis липсва или
+// гръмне — не блокираме потребителя, той пак си сваля етикета.
+async function saveLeadToRedis(lead) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return { skipped: true };
+  try {
+    const res = await fetch(`${url}/pipeline`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify([
+        ['LPUSH', 'nf:leads', JSON.stringify(lead)],
+        ['SADD', 'nf:leads:emails', lead.email],
+      ]),
+    });
+    if (!res.ok) return { skipped: true };
+    return { ok: true };
+  } catch (e) {
+    console.error('Redis lead save error:', e);
+    return { skipped: true };
+  }
+}
+
 function originAllowed(req) {
   const host = req.headers.host || '';
   const extra = (process.env.ALLOWED_ORIGINS || '')
@@ -60,14 +85,19 @@ export default async function handler(req, res) {
 
     console.log('NEW LEAD:', JSON.stringify(lead));
 
+    // Два независими приемника, паралелно. Никой от тях не бива да бави
+    // или чупи отговора — при провал лийдът остава поне в лога.
     const hook = process.env.LEAD_WEBHOOK;
-    if (hook) {
-      await fetch(hook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lead),
-      }).catch((e) => console.error('LEAD_WEBHOOK error:', e));
-    }
+    await Promise.allSettled([
+      saveLeadToRedis(lead),
+      hook
+        ? fetch(hook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(lead),
+          }).catch((e) => console.error('LEAD_WEBHOOK error:', e))
+        : Promise.resolve(),
+    ]);
 
     res.status(200).json({ ok: true });
   } catch (e) {

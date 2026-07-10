@@ -494,6 +494,7 @@ function updateResults() {
     ['r-cal','r-prot','r-carb','r-fat'].forEach(id => document.getElementById(id).textContent = '—');
     document.getElementById('detail-rows').innerHTML = '';
     const qp = document.getElementById('quality-panel'); if (qp) qp.innerHTML = '';
+    renderQuickBar(null);
     return;
   }
   // Подсказка за теглото след готвене
@@ -542,6 +543,7 @@ function updateResults() {
   updateLabel(r);
   renderLabelInfo();
   renderBarcode();
+  renderQuickBar(per100);
 }
 
 // ─── Nutri-Score (опростен официален алгоритъм за храни) ──────────────────────
@@ -586,9 +588,58 @@ const QUALITY_T = {
 };
 const NUTRI_COLORS = { A:'#2a8a3e', B:'#85bb2f', C:'#f5c518', D:'#ef8200', E:'#e1342a' };
 
+// ─── Лепкава лента с резултата (телефон) ──────────────────────────────────────
+// На тесен екран резултатите падат под целия формуляр. Лентата държи
+// калориите и Nutri-Score пред очите и води до етикета с едно цъкане.
+const QUICKBAR_T = {
+  bg: { kcal:'ккал', per:'на 100 г', cta:'Виж етикета →', empty:'Добави съставка' },
+  en: { kcal:'kcal', per:'per 100 g', cta:'See label →', empty:'Add an ingredient' },
+  ru: { kcal:'ккал', per:'на 100 г', cta:'Смотреть этикетку →', empty:'Добавьте ингредиент' },
+  uk: { kcal:'ккал', per:'на 100 г', cta:'Дивись етикетку →', empty:'Додай інгредієнт' },
+};
+
+function renderQuickBar(p100) {
+  const bar = document.getElementById('quick-bar');
+  if (!bar) return;
+  const t = QUICKBAR_T[currentLang] || QUICKBAR_T.bg;
+  const scoreEl = document.getElementById('qb-score');
+
+  document.getElementById('qb-kcal-l').textContent = t.kcal;
+  document.getElementById('qb-cta').textContent = t.cta;
+
+  if (!p100) { // няма съставки → подканваме, вместо да лъжем с 0
+    scoreEl.textContent = '–';
+    scoreEl.className = 'qb-score';
+    document.getElementById('qb-kcal').textContent = '0';
+    document.getElementById('qb-per').textContent = t.empty;
+    return;
+  }
+
+  if (productType === 'feed') {   // Nutri-Score не важи за фуражи
+    scoreEl.textContent = '🐕';
+    scoreEl.className = 'qb-score';
+  } else {
+    const ns = nutriScore(p100);
+    scoreEl.textContent = ns.grade;
+    scoreEl.className = 'qb-score g-' + ns.grade;
+  }
+  document.getElementById('qb-kcal').textContent = Math.round(p100.cal || 0);
+  document.getElementById('qb-per').textContent = t.per;
+}
+
+// Води до етикета — това е „уау" моментът, не таблицата с числа.
+function jumpToResults() {
+  showTab('label');
+  const target = document.getElementById('pane-label') || document.getElementById('quality-panel');
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function renderQuality(p100) {
   const el = document.getElementById('quality-panel');
   if (!el) return;
+  // Nutri-Score и твърденията по 1924/2006 важат само за храни за хора.
+  // За фуражи (Регл. 767/2009) са неприложими — не ги показваме.
+  if (productType === 'feed') { el.innerHTML = ''; return; }
   const q = QUALITY_T[currentLang];
   const ns = nutriScore(p100);
   const claims = CLAIM_DEFS.filter(c => { try { return c.ok(p100); } catch(e){ return false; } });
@@ -634,7 +685,7 @@ function updateLabel(r) {
     satVal = p.sat || 0;
     satfatDisplay = satVal.toFixed(1) + ' ' + t.g;
   }
-  const name = document.getElementById('product-name').value || 'Product';
+  const name = productLabelName();
   document.getElementById('el-name').textContent = name;
   document.getElementById('el-batch').textContent = r.cooked
     ? `${t.batchInfo}: ${r.totalWeight.toFixed(0)}${t.g} → ${r.cooked.toFixed(0)}${t.g}`
@@ -880,7 +931,7 @@ function updateFeedLabel(r) {
   const t = T[currentLang];
   const F = getFeedValues();
   const fmt = x => isNaN(x) ? '—' : x.toFixed(1) + ' %';
-  const name = document.getElementById('product-name').value || 'Product';
+  const name = productLabelName();
   const speciesTxt = F.species === 'dog' ? t.feedDog : t.feedCat;
   document.getElementById('el-name').textContent = name;
   document.getElementById('el-batch').textContent = `${t.feedComplete} — ${speciesTxt}`;
@@ -1041,6 +1092,13 @@ const SPEC_T = {
   ru: { btn:'📄 Спецификация (PDF)', title:'Спецификация продукта', batch:'Партия', serving:'Порция', date:'Дата', nutri:'Пищевая ценность', comp:'Состав', allerg:'Аллергены', score:'Nutri-Score' },
   uk: { btn:'📄 Специфікація (PDF)', title:'Специфікація продукту', batch:'Партія', serving:'Порція', date:'Дата', nutri:'Харчова цінність', comp:'Склад', allerg:'Алергени', score:'Nutri-Score' },
 };
+// Резервно име на етикета, ако полето „Наименование" е празно.
+const UNNAMED_T = { bg:'Вашият продукт', en:'Your product', ru:'Ваш продукт', uk:'Ваш продукт' };
+function productLabelName() {
+  return document.getElementById('product-name').value.trim()
+    || UNNAMED_T[currentLang] || UNNAMED_T.bg;
+}
+
 // ─── ЗАДЪЛЖИТЕЛНИ ДАННИ ЗА ЕТИКЕТА (EU 1169/2011) ─────────────────────────────
 const LABELINFO_T = {
   bg: { title:'Данни за етикета (EU 1169/2011)', producer:'Производител', net:'Нетно тегло', best:'Най-добър до', batch:'Партида', origin:'Произход', storage:'Съхранение', bg:'Фон' },
