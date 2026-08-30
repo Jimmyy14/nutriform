@@ -71,7 +71,8 @@
   .hero-copy h1 .grad{background:linear-gradient(120deg,var(--accent-d),var(--lime));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .lead{font-size:1.18rem;color:var(--muted);max-width:52ch;margin:0 0 26px}
   .cta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .trust{display:flex;gap:16px;flex-wrap:wrap;margin-top:24px;font-size:.85rem;color:var(--muted)}
+  .cta-note{margin-top:12px;font-size:.86rem;font-weight:600;color:var(--accent-d)}
+  .trust{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px;font-size:.85rem;color:var(--muted)}
   .trust span{display:flex;align-items:center;gap:7px}
   .check{width:16px;height:16px;flex:none;color:var(--accent-d)}
 
@@ -188,9 +189,12 @@
   .mcta{display:none}
 
   @media(max-width:900px){
-    .hero-grid{grid-template-columns:1fr;gap:30px}
-    .hero-copy h1{font-size:2.4rem}
+    .hero-grid{grid-template-columns:1fr;gap:24px}
+    .hero-copy h1{font-size:2.35rem;margin:12px 0 14px}
+    .lead{font-size:1.08rem;margin-bottom:20px}
     .demo{order:2}
+    /* по-малко празно отгоре → демото и CTA изплуват по-рано */
+    header{padding:28px 0 30px}
   }
   @media(max-width:820px){
     .ba{grid-template-columns:1fr}.ba .arrow{transform:rotate(90deg)}
@@ -224,11 +228,12 @@
     <div class="hero-copy reveal in">
       <span class="tag"><span class="pulse"></span>AI Recipe &amp; Nutrition Formulator</span>
       <h1>Хранителна стойност и <span class="grad">EU етикет</span> за минути.</h1>
-      <p class="lead">Въвеждаш съставките — NutriForm смята калориите, дава Nutri-Score, разрешените твърдения и готов етикет по Регламент 1169/2011. Безплатно, в браузъра, без регистрация.</p>
+      <p class="lead">Въведи съставките и за минути имаш калории, Nutri-Score, разрешените твърдения и готов етикет по 1169/2011. <b style="color:var(--ink)">Безплатно, без регистрация.</b></p>
       <div class="cta-row">
         <a href="/" class="btn big">Отвори NutriForm →</a>
         <a href="#how" class="btn ghost">Виж как работи</a>
       </div>
+      <div class="cta-note">⚡ Готов етикет за ~3 минути · директно в браузъра</div>
       <div class="trust">
         <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Nutri-Score A–E</span>
         <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Етикет по 1169/2011</span>
