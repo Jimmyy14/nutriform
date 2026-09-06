@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     // Два независими приемника, паралелно. Никой от тях не бива да бави
     // или чупи отговора — при провал лийдът остава поне в лога.
     const hook = process.env.LEAD_WEBHOOK;
-    await Promise.allSettled([
+    const [redisRes] = await Promise.allSettled([
       saveLeadToRedis(lead),
       hook
         ? fetch(hook, {
@@ -104,7 +104,11 @@ export default async function handler(req, res) {
         : Promise.resolve(),
     ]);
 
-    res.status(200).json({ ok: true });
+    // Честно казваме дали лийдът реално влезе в Redis. Клиентът игнорира това
+    // поле (не блокира export-а), но един тестов POST веднага показва дали
+    // съхранението работи — без да се рови в Upstash конзолата.
+    const stored = redisRes.status === 'fulfilled' && redisRes.value && redisRes.value.ok === true;
+    res.status(200).json({ ok: true, stored });
   } catch (e) {
     console.error('lead endpoint error:', e);
     res.status(500).json({ error: 'Server error' });
