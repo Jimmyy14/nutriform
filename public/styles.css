@@ -1,9 +1,9 @@
 :root {
   /* Палитра „форест + злато" — изравнена с landing-а (dyslove.design) */
-  --bg: #f7f4ec;
+  --bg: #eef3ea;
   --surface: #ffffff;
-  --surface2: #efece3;
-  --border: #e3ddce;
+  --surface2: #e7eee5;
+  --border: #dbe1d3;
   --border2: #ccc4b3;
   --text: #1c2620;
   --text2: #636a5f;

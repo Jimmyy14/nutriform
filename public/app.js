@@ -553,19 +553,20 @@ function nutriScore(p) {
 }
 
 // ─── Допустими хранителни твърдения (Регл. (ЕО) 1924/2006) на 100 г ───────────
+// Само логиката (ключ + условие). Преводите на твърденията са в i18n.js (CLAIMS_T).
 const CLAIM_DEFS = [
-  { k:'highProtein', t:{bg:'Високо съдържание на белтък',en:'High protein',ru:'Высокое содержание белка',uk:'Високий вміст білка'}, ok:p => p.cal>0 && (p.prot*4/p.cal)>=0.20 },
-  { k:'sourceProtein', t:{bg:'Източник на белтък',en:'Source of protein',ru:'Источник белка',uk:'Джерело білка'}, ok:p => p.cal>0 && (p.prot*4/p.cal)>=0.12 },
-  { k:'highFibre', t:{bg:'Високо съдържание на влакнини',en:'High fibre',ru:'Высокое содержание клетчатки',uk:'Високий вміст клітковини'}, ok:p => (p.fiber||0)>=6 },
-  { k:'sourceFibre', t:{bg:'Източник на влакнини',en:'Source of fibre',ru:'Источник клетчатки',uk:'Джерело клітковини'}, ok:p => (p.fiber||0)>=3 },
-  { k:'lowFat', t:{bg:'Ниско съдържание на мазнини',en:'Low fat',ru:'Низкое содержание жира',uk:'Низький вміст жиру'}, ok:p => (p.fat||0)<=3 },
-  { k:'fatFree', t:{bg:'Без мазнини',en:'Fat-free',ru:'Без жира',uk:'Без жиру'}, ok:p => (p.fat||0)<=0.5 },
-  { k:'lowSat', t:{bg:'Ниско съдържание на наситени мазнини',en:'Low saturated fat',ru:'Низкое содержание насыщенных жиров',uk:'Низький вміст насичених жирів'}, ok:p => (p.sat||0)<=1.5 },
-  { k:'lowSugar', t:{bg:'Ниско съдържание на захари',en:'Low sugars',ru:'Низкое содержание сахаров',uk:'Низький вміст цукрів'}, ok:p => (p.sugar||0)<=5 },
-  { k:'sugarFree', t:{bg:'Без захари',en:'Sugar-free',ru:'Без сахара',uk:'Без цукру'}, ok:p => (p.sugar||0)<=0.5 },
-  { k:'lowSalt', t:{bg:'Ниско съдържание на сол',en:'Low salt',ru:'Низкое содержание соли',uk:'Низький вміст солі'}, ok:p => (p.sodium||0)<=120 },
-  { k:'veryLowSalt', t:{bg:'Много ниско съдържание на сол',en:'Very low salt',ru:'Очень низкое содержание соли',uk:'Дуже низький вміст солі'}, ok:p => (p.sodium||0)<=48 },
-  { k:'lowEnergy', t:{bg:'Ниско енергийно съдържание',en:'Low energy',ru:'Низкокалорийный',uk:'Низькокалорійний'}, ok:p => (p.cal||0)<=40 },
+  { k:'highProtein', ok:p => p.cal>0 && (p.prot*4/p.cal)>=0.20 },
+  { k:'sourceProtein', ok:p => p.cal>0 && (p.prot*4/p.cal)>=0.12 },
+  { k:'highFibre', ok:p => (p.fiber||0)>=6 },
+  { k:'sourceFibre', ok:p => (p.fiber||0)>=3 },
+  { k:'lowFat', ok:p => (p.fat||0)<=3 },
+  { k:'fatFree', ok:p => (p.fat||0)<=0.5 },
+  { k:'lowSat', ok:p => (p.sat||0)<=1.5 },
+  { k:'lowSugar', ok:p => (p.sugar||0)<=5 },
+  { k:'sugarFree', ok:p => (p.sugar||0)<=0.5 },
+  { k:'lowSalt', ok:p => (p.sodium||0)<=120 },
+  { k:'veryLowSalt', ok:p => (p.sodium||0)<=48 },
+  { k:'lowEnergy', ok:p => (p.cal||0)<=40 },
 ];
 const NUTRI_COLORS = { A:'#2a8a3e', B:'#85bb2f', C:'#f5c518', D:'#ef8200', E:'#e1342a' };
 
@@ -619,7 +620,7 @@ function renderQuality(p100) {
   const ns = nutriScore(p100);
   const claims = CLAIM_DEFS.filter(c => { try { return c.ok(p100); } catch(e){ return false; } });
   const chips = claims.length
-    ? claims.map(c => `<span class="claim-chip">✓ ${c.t[currentLang]}</span>`).join('')
+    ? claims.map(c => `<span class="claim-chip">✓ ${(CLAIMS_T[c.k]||{})[currentLang] || c.k}</span>`).join('')
     : `<span style="font-size:12px;color:var(--text3)">${q.none}</span>`;
   el.innerHTML = `
     <div class="quality-head">${q.title}</div>
@@ -1133,16 +1134,7 @@ async function improveRecipe() {
   const output = document.getElementById('ai-output');
   output.innerHTML = `<div class="loading-row"><div class="search-spinner"></div>${t.improving}</div>`;
   const goal = document.getElementById('improve-goal').value;
-  const presetText = {
-    protein: {bg:'повече белтък', en:'more protein', ru:'больше белка', uk:'більше білка'},
-    salt: {bg:'по-малко сол/натрий', en:'less salt/sodium', ru:'меньше соли/натрия', uk:'менше солі/натрію'},
-    sugar: {bg:'по-малко захар', en:'less sugar', ru:'меньше сахара', uk:'менше цукру'},
-    fat: {bg:'по-малко мазнини', en:'less fat', ru:'меньше жира', uk:'менше жиру'},
-    fiber: {bg:'повече хранителни влакнини', en:'more dietary fibre', ru:'больше клетчатки', uk:'більше клітковини'},
-    kcal: {bg:'по-малко калории', en:'fewer calories', ru:'меньше калорий', uk:'менше калорій'},
-    additives: {bg:'по-чист етикет — по-малко добавки и E-номера', en:'a cleaner label — fewer additives and E-numbers', ru:'более чистая этикетка — меньше добавок и E-номеров', uk:'чистіша етикетка — менше добавок і E-номерів'},
-    overall: {bg:'цялостно по-добър хранителен профил', en:'overall better nutrition profile', ru:'улучшение общего профиля', uk:'покращення загального профілю'}
-  }[goal][currentLang];
+  const presetText = (IMPROVE_GOALS_T[goal] || IMPROVE_GOALS_T.overall)[currentLang];
   // Ако потребителят е описал своя цел — тя има приоритет пред готовия избор.
   const custom = (document.getElementById('improve-custom').value || '').trim().slice(0, 200);
   const goalText = custom || presetText;
