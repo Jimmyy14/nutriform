@@ -50,11 +50,13 @@
   .tag .pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(58,75,65,.6);animation:pulse 2s infinite}
   @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(58,75,65,0)}100%{box-shadow:0 0 0 0 rgba(58,75,65,0)}}
 
-  nav{position:sticky;top:0;z-index:40;background:rgba(246,247,244,.85);backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s}
-  nav.scrolled{border-bottom-color:var(--line);box-shadow:0 4px 20px rgba(33,58,37,.06)}
+  nav{position:sticky;top:0;z-index:40;background:transparent;backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:background .3s,border-color .3s,box-shadow .3s}
+  nav.scrolled{background:rgba(250,246,236,.9);border-bottom-color:var(--line);box-shadow:0 4px 20px rgba(33,58,37,.06)}
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
-  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.15rem}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.15rem;color:#f4efe2;transition:color .3s}
+  nav.scrolled .logo{color:var(--ink)}
   .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(58,75,65,.7)}
+  .lead-em{color:var(--ink);font-weight:700}
 
   /* HERO */
   header{position:relative;padding:64px 0 40px;overflow:hidden}
@@ -75,6 +77,28 @@
   .trust{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px;font-size:.85rem;color:var(--muted)}
   .trust span{display:flex;align-items:center;gap:7px}
   .check{width:16px;height:16px;flex:none;color:var(--accent-d)}
+
+  /* ─── ТЪМНА HERO СЕКЦИЯ (експеримент) ───────────────────────────────────────
+     Всичко тук е под header.dark-hero — маха се с махане на класа от <header>. */
+  /* тъмният фон минава ПОД прозрачния nav (иначе горе остава светла ивица) */
+  header.dark-hero{background:radial-gradient(1200px 700px at 50% 0,#33473c,#182019 72%);margin-top:-62px;padding-top:126px}
+  header.dark-hero .aurora{opacity:.42;mix-blend-mode:screen}
+  header.dark-hero .tag{background:rgba(255,255,255,.10);color:#eae4d4;border:1px solid rgba(255,255,255,.14)}
+  header.dark-hero .hero-copy h1{color:#f4efe2}
+  header.dark-hero .hero-copy h1 .grad{background:linear-gradient(120deg,#ecd7a8,#d3a850);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  header.dark-hero .lead{color:#c2ccbf}
+  header.dark-hero .lead-em{color:#fff}
+  header.dark-hero .cta-note{color:#e6cfa7}
+  header.dark-hero .trust{color:#aeb9ab}
+  header.dark-hero .check{color:#dabd77}
+  /* основен бутон: кремав върху тъмното → максимален контраст */
+  header.dark-hero .btn.big{background:linear-gradient(135deg,#f3ead4,#e6cfa7);color:#1c2820;box-shadow:0 12px 34px rgba(0,0,0,.38)}
+  header.dark-hero .btn.big:hover{box-shadow:0 18px 42px rgba(0,0,0,.5)}
+  header.dark-hero .btn.ghost{color:#eef2ea;border-color:rgba(255,255,255,.34);background:transparent}
+  header.dark-hero .btn.ghost:hover{background:rgba(255,255,255,.09)}
+  /* демо-картата свети върху тъмното като продуктова снимка */
+  header.dark-hero .demo{box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.05)}
+  header.dark-hero .shot .cap{color:#a9b3a6}
 
   /* INTERACTIVE DEMO */
   .demo{background:var(--white);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow-lg);padding:22px;position:relative}
@@ -195,6 +219,7 @@
     .demo{order:2}
     /* по-малко празно отгоре → демото и CTA изплуват по-рано */
     header{padding:28px 0 30px}
+    header.dark-hero{padding-top:84px}  /* 22 + 62 за nav-а */
   }
   @media(max-width:820px){
     .ba{grid-template-columns:1fr}.ba .arrow{transform:rotate(90deg)}
@@ -221,14 +246,14 @@
   <a href="/" class="btn small">Отвори приложението →</a>
 </div></nav>
 
-<!-- HERO -->
-<header>
+<!-- HERO — тъмна секция (експеримент). За връщане към светлата: махни class="dark-hero". -->
+<header class="dark-hero">
   <div class="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
   <div class="wrap hero-grid">
     <div class="hero-copy reveal in">
       <span class="tag"><span class="pulse"></span>AI Recipe &amp; Nutrition Formulator</span>
       <h1>Хранителна стойност и <span class="grad">EU етикет</span> за минути.</h1>
-      <p class="lead">Въведи съставките и за минути имаш калории, Nutri-Score, разрешените твърдения и готов етикет по 1169/2011. <b style="color:var(--ink)">Безплатно, без регистрация.</b></p>
+      <p class="lead">Въведи съставките и за минути имаш калории, Nutri-Score, разрешените твърдения и готов етикет по 1169/2011. <b class="lead-em">Безплатно, без регистрация.</b></p>
       <div class="cta-row">
         <a href="/" class="btn big">Отвори NutriForm →</a>
         <a href="#how" class="btn ghost">Виж как работи</a>
