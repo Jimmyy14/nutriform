@@ -363,12 +363,19 @@
             <select id="improve-goal">
               <option value="protein">↑ Protein</option>
               <option value="salt">↓ Salt</option>
+              <option value="sugar">↓ Sugar</option>
+              <option value="fat">↓ Fat</option>
               <option value="fiber">↑ Fiber</option>
               <option value="kcal">↓ Calories</option>
+              <option value="additives">🧼 Cleaner label</option>
               <option value="overall">★ Overall</option>
             </select>
           </div>
-          <button class="btn btn-amber" onclick="improveRecipe()" id="btn-improve">🔧 Improve recipe</button>
+          <div class="field" style="margin:10px 0 0">
+            <label id="lbl-improve-custom">Or describe what you want (optional)</label>
+            <input type="text" id="improve-custom" autocomplete="off" placeholder="e.g. less sugar and no palm oil">
+          </div>
+          <button class="btn btn-amber" onclick="improveRecipe()" id="btn-improve" style="margin-top:10px">🔧 Improve recipe</button>
         </div>
         <div id="ai-output"></div>
       </div>

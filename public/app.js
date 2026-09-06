@@ -108,9 +108,14 @@ function applyTranslations() {
   const gsel = document.getElementById('improve-goal');
   gsel.options[0].text = t.goalProtein;
   gsel.options[1].text = t.goalSalt;
-  gsel.options[2].text = t.goalFiber;
-  gsel.options[3].text = t.goalKcal;
-  gsel.options[4].text = t.goalOverall;
+  gsel.options[2].text = t.goalSugar;
+  gsel.options[3].text = t.goalFat;
+  gsel.options[4].text = t.goalFiber;
+  gsel.options[5].text = t.goalKcal;
+  gsel.options[6].text = t.goalAdditives;
+  gsel.options[7].text = t.goalOverall;
+  document.getElementById('lbl-improve-custom').textContent = t.customLbl;
+  document.getElementById('improve-custom').placeholder = t.customPh;
   document.getElementById('lbl-font').textContent = t.designFont;
   document.getElementById('lbl-border').textContent = t.designBorder;
   document.getElementById('lbl-color').textContent = t.designColor;
@@ -1128,13 +1133,19 @@ async function improveRecipe() {
   const output = document.getElementById('ai-output');
   output.innerHTML = `<div class="loading-row"><div class="search-spinner"></div>${t.improving}</div>`;
   const goal = document.getElementById('improve-goal').value;
-  const goalText = {
+  const presetText = {
     protein: {bg:'повече белтък', en:'more protein', ru:'больше белка', uk:'більше білка'},
     salt: {bg:'по-малко сол/натрий', en:'less salt/sodium', ru:'меньше соли/натрия', uk:'менше солі/натрію'},
+    sugar: {bg:'по-малко захар', en:'less sugar', ru:'меньше сахара', uk:'менше цукру'},
+    fat: {bg:'по-малко мазнини', en:'less fat', ru:'меньше жира', uk:'менше жиру'},
     fiber: {bg:'повече хранителни влакнини', en:'more dietary fibre', ru:'больше клетчатки', uk:'більше клітковини'},
     kcal: {bg:'по-малко калории', en:'fewer calories', ru:'меньше калорий', uk:'менше калорій'},
+    additives: {bg:'по-чист етикет — по-малко добавки и E-номера', en:'a cleaner label — fewer additives and E-numbers', ru:'более чистая этикетка — меньше добавок и E-номеров', uk:'чистіша етикетка — менше добавок і E-номерів'},
     overall: {bg:'цялостно по-добър хранителен профил', en:'overall better nutrition profile', ru:'улучшение общего профиля', uk:'покращення загального профілю'}
   }[goal][currentLang];
+  // Ако потребителят е описал своя цел — тя има приоритет пред готовия избор.
+  const custom = (document.getElementById('improve-custom').value || '').trim().slice(0, 200);
+  const goalText = custom || presetText;
   const ingList = ingredients.map(i => `${i.name} (${i.amount}${t.g})`).join(', ');
   const name = document.getElementById('product-name').value || '—';
   const langName = {bg:'БЪЛГАРСКИ', en:'ENGLISH', ru:'РУССКИЙ', uk:'УКРАЇНСЬКА'}[currentLang];
